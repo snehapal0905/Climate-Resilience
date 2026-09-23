@@ -204,10 +204,6 @@ function Hero() {
     <section className="relative overflow-hidden">
       <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-12 pt-12 sm:px-6 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-4 lg:px-8 lg:pb-20 lg:pt-20">
         <div className="lp-rise relative z-10">
-          <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-lp-line bg-lp-surface px-3 py-1 text-[12.5px] text-lp-ink-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-lp-green" aria-hidden="true" />
-            Climate intelligence for India
-          </p>
           <h1 className="font-lp-display text-[40px] leading-[1.05] tracking-[-0.02em] text-lp-ink sm:text-[56px] lg:text-[68px]">
             Climate risk is changing.
             <br />
@@ -235,9 +231,7 @@ function Hero() {
 
         <div className="relative mx-auto aspect-[1080/1151] w-full max-w-[520px] lg:max-w-none">
           <HeroIndiaVisual />
-          <LiveCard className="absolute bottom-[14%] right-[2%] hidden sm:flex" />
-          <p className="absolute left-0 top-2 text-[11px] uppercase tracking-[0.12em] text-lp-ink-3">Illustrative</p>
-        </div>
+          <LiveCard className="absolute bottom-[14%] right-[2%] hidden sm:flex" />        </div>
         {/* On phones the card sits below the map so it doesn't cover it. */}
         <LiveCard className="flex sm:hidden" />
       </div>
