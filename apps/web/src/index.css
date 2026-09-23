@@ -90,3 +90,114 @@ body {
 .maplibregl-popup-tip {
   display: none;
 }
+
+/* ---------------------------------------------------------------------------
+ * Landing page (/). Tokens are scoped to .lp so the dashboard is unaffected.
+ * The landing is intentionally light-only: off-white, forest green, charcoal.
+ * ------------------------------------------------------------------------- */
+.lp {
+  --lp-bg: #f6f5f0;
+  --lp-surface: #fdfdfb;
+  --lp-sand: #ece8dc;
+  --lp-ink: #17201b;
+  --lp-ink-2: #46514b;
+  --lp-ink-3: #6b7570;
+  --lp-line: #e2e0d8;
+  --lp-line-strong: #cfccc1;
+  --lp-green: #1f5a41;
+  --lp-green-deep: #143d2c;
+  --lp-green-soft: #e3ece5;
+  --lp-sage: #a9c4b3;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-lp-bg: var(--lp-bg);
+  --color-lp-surface: var(--lp-surface);
+  --color-lp-sand: var(--lp-sand);
+  --color-lp-ink: var(--lp-ink);
+  --color-lp-ink-2: var(--lp-ink-2);
+  --color-lp-ink-3: var(--lp-ink-3);
+  --color-lp-line: var(--lp-line);
+  --color-lp-line-strong: var(--lp-line-strong);
+  --color-lp-green: var(--lp-green);
+  --color-lp-green-deep: var(--lp-green-deep);
+  --color-lp-green-soft: var(--lp-green-soft);
+  --color-lp-sage: var(--lp-sage);
+  --font-lp-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-lp-display: "Newsreader", ui-serif, Georgia, serif;
+}
+
+.lp .font-lp-display {
+  font-weight: 400;
+  font-optical-sizing: auto;
+}
+
+.lp-hatch-swatch {
+  background: repeating-linear-gradient(45deg, rgb(23 32 27 / 0.12) 0 2px, transparent 2px 5px);
+}
+
+@keyframes lp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lp-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+@keyframes lp-ping {
+  75%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+.lp-rise {
+  animation: lp-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.lp-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lp-pulse 3.5s ease-out infinite;
+}
+.lp-ping {
+  animation: lp-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-rise,
+  .lp-pulse,
+  .lp-ping {
+    animation: none;
+  }
+  .lp-pulse {
+    opacity: 0;
+  }
+  .lp * {
+    transition: none !important;
+  }
+}
+
+html.lp-root,
+html.lp-root body {
+  background: #f6f5f0;
+  color-scheme: light;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.lp-root {
+    scroll-behavior: smooth;
+  }
+}
