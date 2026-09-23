@@ -19,6 +19,8 @@ export interface RunSummary {
 export interface RegionRiskProperties {
   id: string;
   name: string;
+  /** State the region belongs to, as named in the boundary data (e.g. "Assam") */
+  state: string;
   population: number | null;
   risk_score: number | null;
   risk_level: RiskLevel | null;

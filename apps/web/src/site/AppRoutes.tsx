@@ -1,11 +1,12 @@
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import LandingPage from "../landing/LandingPage";
 import { Link, usePathname } from "../lib/router";
-import { AssamLiveLink, PlaceholderPage } from "./PlaceholderPage";
+import { PlaceholderPage } from "./PlaceholderPage";
 import { ROUTES, SiteLayout } from "./SiteLayout";
 
 // Loaded on demand so other pages don't download the map and chart libraries.
 const AssamFloodWatch = lazy(() => import("../App"));
+const ExplorePage = lazy(() => import("../explore/ExplorePage"));
 
 const SITE_NAME = "ClimateResilience";
 
@@ -19,9 +20,9 @@ const PAGES: Record<string, Route> = {
   [ROUTES.explore]: {
     title: `Explore India · ${SITE_NAME}`,
     render: () => (
-      <PlaceholderPage title="Explore India" description="India-wide climate risk intelligence is coming here.">
-        <AssamLiveLink />
-      </PlaceholderPage>
+      <Suspense fallback={<div className="mx-auto min-h-[70vh] max-w-7xl px-4 pt-14 text-[15px] text-lp-ink-3 sm:px-6 lg:px-8">Loading map…</div>}>
+        <ExplorePage />
+      </Suspense>
     ),
   },
   [ROUTES.hazards]: {

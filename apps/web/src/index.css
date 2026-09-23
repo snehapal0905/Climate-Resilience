@@ -201,3 +201,42 @@ html.lp-root body {
     scroll-behavior: smooth;
   }
 }
+
+/* Explore map (light theme regardless of OS dark mode, which only applies to the dashboard) */
+.lp .maplibregl-ctrl-group,
+.lp .maplibregl-ctrl-attrib {
+  background: var(--lp-surface) !important;
+  color: var(--lp-ink-2);
+}
+.lp .maplibregl-ctrl-attrib-inner,
+.lp .maplibregl-ctrl-attrib a {
+  color: var(--lp-ink-3);
+}
+.lp .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: none;
+}
+.lp .maplibregl-ctrl-group {
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgb(23 32 27 / 0.12);
+}
+.lp .maplibregl-ctrl-group button {
+  width: 38px;
+  height: 38px;
+}
+.lp .maplibregl-popup-content {
+  background: var(--lp-surface);
+  color: var(--lp-ink);
+  border: 1px solid var(--lp-line);
+  box-shadow: 0 8px 24px -12px rgb(23 32 27 / 0.3);
+}
+.lp-map-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-lp-sans);
+  font-size: 13px;
+}
+.lp-map-tip span {
+  color: var(--lp-ink-3);
+  font-size: 12.5px;
+}

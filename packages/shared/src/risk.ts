@@ -15,6 +15,12 @@ export const RISK_LEVEL_META: Record<RiskLevel, { label: string; color: string; 
   severe: { label: "Severe", color: "#d03b3b", rank: 3 },
 };
 
+/**
+ * Colour for "no prediction available". Deliberately a neutral grey: no data must never be
+ * mistaken for low risk (green).
+ */
+export const NO_DATA_COLOR = "#9a9a94";
+
 /** Human-readable names for model features, used when explaining a prediction. */
 export const FEATURE_LABELS: Record<string, string> = {
   rain_1d_mm: "Rainfall on the day",

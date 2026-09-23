@@ -26,9 +26,9 @@ riskRouter.get("/map", async (req, res) => {
   const validFor = run ? resolveDate(run, q.date) : null;
 
   const rows = await sql<
-    Array<{ id: string; name: string; population: number | null; geometry: string; risk_score: number | null; risk_level: RiskLevel | null }>
+    Array<{ id: string; name: string; state: string; population: number | null; geometry: string; risk_score: number | null; risk_level: RiskLevel | null }>
   >`
-    SELECT r.id, r.name, r.population,
+    SELECT r.id, r.name, r.state, r.population,
            ST_AsGeoJSON(ST_SimplifyPreserveTopology(r.geom, ${SIMPLIFY_TOLERANCE}), 5) AS geometry,
            p.risk_score, p.risk_level
     FROM regions r
@@ -47,6 +47,7 @@ riskRouter.get("/map", async (req, res) => {
       properties: {
         id: r.id,
         name: r.name,
+        state: r.state,
         population: r.population,
         risk_score: r.risk_score,
         risk_level: r.risk_level,
