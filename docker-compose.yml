@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: climate
+      POSTGRES_PASSWORD: climate
+      POSTGRES_DB: climate
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U climate"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # Mock ML service. The ML teammate replaces services/ml with the real model;
+  # as long as it honours the contract in packages/shared/src/ml.ts nothing else changes.
+  ml:
+    build: ./services/ml
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:

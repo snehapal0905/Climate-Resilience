@@ -1,0 +1,85 @@
+{
+  "app": {
+    "title": "Assam Flood Watch",
+    "subtitle": "District flood-risk forecast",
+    "disclaimer": "Prototype. Risk comes from a placeholder model. Always follow official ASDMA and IMD advisories.",
+    "helplines": "Emergency 112 · Disaster helpline 1070"
+  },
+  "run": {
+    "label": "Data",
+    "live": "Live forecast",
+    "replay": "Replay",
+    "model": "Model",
+    "replayBanner": "Replay of past data from {{date}}. This is not a current warning.",
+    "none": "No forecast has been generated yet. Run the pipeline to create one."
+  },
+  "day": {
+    "label": "Forecast day",
+    "today": "Run date"
+  },
+  "risk": {
+    "low": "Low",
+    "moderate": "Moderate",
+    "high": "High",
+    "severe": "Severe",
+    "none": "No data",
+    "legend": "Flood risk"
+  },
+  "summary": {
+    "title": "Risk on {{date}}",
+    "districts_one": "district",
+    "districts_other": "districts",
+    "top": "Highest-risk districts",
+    "hint": "Select a district on the map for its forecast and advice."
+  },
+  "locate": {
+    "button": "Am I safe? Use my location",
+    "locating": "Finding your district…",
+    "denied": "Location access was denied. Select your district on the map instead.",
+    "unsupported": "Your browser can't share location. Select your district on the map instead.",
+    "outside": "Your location is outside the covered districts."
+  },
+  "region": {
+    "back": "Back to overview",
+    "riskOn": "Risk on {{date}}",
+    "score": "Risk score",
+    "why": "What's driving this",
+    "outlook": "7-day risk outlook",
+    "rainfall": "Daily rainfall (mm)",
+    "discharge": "River discharge (m³/s)",
+    "observed": "Observed",
+    "forecast": "Forecast",
+    "advice": "What to do",
+    "noPrediction": "No prediction for this district in the selected run."
+  },
+  "features": {
+    "rain_1d_mm": "Rainfall on the day",
+    "rain_3d_mm": "3-day rainfall",
+    "rain_7d_mm": "7-day rainfall",
+    "river_discharge_m3s": "River discharge",
+    "discharge_ratio": "River flow vs 30-day normal"
+  },
+  "advice": {
+    "low": [
+      "No flood threat expected. Keep following local weather updates.",
+      "Keep an emergency kit ready: documents in a waterproof bag, torch, medicines, drinking water."
+    ],
+    "moderate": [
+      "Stay alert to rainfall and river-level updates.",
+      "Move important documents and valuables to a higher shelf.",
+      "Know your nearest relief camp and the safest route to it."
+    ],
+    "high": [
+      "Prepare to move to higher ground at short notice.",
+      "Charge phones and power banks; keep the emergency kit by the door.",
+      "Move livestock and grain stocks to higher, safer places.",
+      "Avoid crossing flowing water, even if it looks shallow."
+    ],
+    "severe": [
+      "Follow evacuation orders from the district administration immediately.",
+      "Move to a relief camp or higher ground now. Do not wait for water to enter your home.",
+      "Switch off electricity and gas before leaving.",
+      "Call 112 or 1070 if you or others are trapped."
+    ]
+  }
+}
