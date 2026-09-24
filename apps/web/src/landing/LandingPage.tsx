@@ -1,18 +1,10 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "../lib/router";
 import { PrimaryButton, ROUTES } from "../site/SiteLayout";
-import { HazardIcon, type HazardKey } from "./HazardIcon";
+import type { Hazard } from "@climate/shared";
+import { HazardIcon } from "../hazards/HazardIcon";
+import { exploreHazardHref, getHazard, HAZARD_REGISTRY } from "../hazards/registry";
 import { HeroIndiaVisual, IndiaPreviewMap } from "./IndiaVisuals";
-
-const HAZARDS: Array<{ key: HazardKey; label: string }> = [
-  { key: "flood", label: "Flood" },
-  { key: "heatwave", label: "Heatwave" },
-  { key: "cyclone", label: "Cyclone" },
-  { key: "drought", label: "Drought" },
-  { key: "landslide", label: "Landslide" },
-  { key: "wildfire", label: "Wildfire" },
-  { key: "lightning", label: "Lightning" },
-];
 
 const ACTIONS = [
   { title: "Know your risk", body: "Understand the hazards affecting your region." },
@@ -20,11 +12,12 @@ const ACTIONS = [
   { title: "Act when it matters", body: "Access alerts, emergency information and recommended actions." },
 ];
 
-const PREPARE: Array<{ key: HazardKey; label: string; body: string }> = [
-  { key: "flood", label: "Flood", body: "Know what to do before, during and after flooding." },
-  { key: "heatwave", label: "Heatwave", body: "Stay cool, hydrated and safe when temperatures soar." },
-  { key: "cyclone", label: "Cyclone", body: "Secure your home and plan your route to shelter early." },
-  { key: "earthquake", label: "Earthquake", body: "Drop, cover and hold on, and know what to do after the shaking stops." },
+/** Preparedness teasers (guidance copy); hazard names and icons come from the hazard registry. */
+const PREPARE: Array<{ key: Hazard; body: string }> = [
+  { key: "flood", body: "Know what to do before, during and after flooding." },
+  { key: "heatwave", body: "Stay cool, hydrated and safe when temperatures soar." },
+  { key: "cyclone", body: "Secure your home and plan your route to shelter early." },
+  { key: "earthquake", body: "Drop, cover and hold on, and know what to do after the shaking stops." },
 ];
 
 const PILLARS = [
@@ -101,12 +94,19 @@ function HazardStrip() {
       <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-10 lg:px-8">
         <p className="shrink-0 text-[14px] text-lp-ink-2">Monitoring climate &amp; disaster risk across India</p>
         <ul className="flex flex-wrap gap-2">
-          {HAZARDS.map((h) => (
-            <li key={h.key} className="flex items-center gap-2 rounded-full border border-lp-line px-3.5 py-2 text-[14px] text-lp-ink transition-colors hover:border-lp-green/40 hover:bg-lp-green-soft/60">
-              <span className="text-lp-green">
-                <HazardIcon hazard={h.key} className="h-[18px] w-[18px]" />
-              </span>
-              {h.label}
+          {HAZARD_REGISTRY.map((h) => (
+            <li key={h.id}>
+              <Link
+                to={exploreHazardHref(h.id)}
+                title={h.status === "active" ? h.description : `${h.name}: coming soon`}
+                className="flex items-center gap-2 rounded-full border border-lp-line px-3.5 py-2 text-[14px] text-lp-ink transition-colors hover:border-lp-green/40 hover:bg-lp-green-soft/60"
+              >
+                <span style={{ color: h.color }}>
+                  <HazardIcon hazard={h.id} className="h-[18px] w-[18px]" />
+                </span>
+                {h.name}
+                <span className={`text-[11px] ${h.status === "active" ? "font-medium text-lp-green" : "text-lp-ink-3"}`}>{h.status === "active" ? "Live" : "Soon"}</span>
+              </Link>
             </li>
           ))}
         </ul>
@@ -126,7 +126,7 @@ function SectionHeading({ eyebrow, title, children }: { eyebrow: string; title: 
 }
 
 function IndiaPreview() {
-  const layers = ["Flood", "Heatwave", "Cyclone", "Drought"];
+  const layers = HAZARD_REGISTRY.slice(0, 4).map((h) => h.name);
   return (
     <section id="risk-map" className="scroll-mt-20 py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -238,7 +238,7 @@ function Prepare() {
               <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-lp-green-soft text-lp-green">
                 <HazardIcon hazard={p.key} className="h-6 w-6" />
               </span>
-              <h3 className="mt-6 text-[18px] font-semibold text-lp-ink">{p.label}</h3>
+              <h3 className="mt-6 text-[18px] font-semibold text-lp-ink">{getHazard(p.key).name}</h3>
               <p className="mt-2 text-[14.5px] leading-relaxed text-lp-ink-2">{p.body}</p>
             </li>
           ))}

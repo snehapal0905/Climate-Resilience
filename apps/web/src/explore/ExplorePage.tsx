@@ -1,23 +1,35 @@
 /**
- * /explore — India → state → district drill-down over the risk API.
- * Boundaries come from static files (./geo); risk comes only from the existing risk API, so regions
- * without a model are always shown as "no data", never as low risk.
+ * /explore — India → state → district drill-down for the selected hazard.
+ * Boundaries come from static files (./geo); risk comes only from the existing risk API. Three states
+ * are kept distinct: prediction available, "no data" (hazard modelled, nothing here) and
+ * "coming soon" (no model for the hazard yet — the map shows boundaries only).
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { NO_DATA_COLOR, RISK_LEVEL_META, RISK_LEVELS, type RiskLevel } from "@climate/shared";
 import { useRiskMap, useRuns } from "../lib/api";
 import { formatDay } from "../lib/format";
-import { Breadcrumbs, DateSelect, HazardSelect, LocationSearch, type Crumb, type SearchHit } from "./ExploreControls";
+import { HazardTile } from "../hazards/HazardBits";
+import { DEFAULT_HAZARD, getHazard, hazardAvailability, type HazardMeta } from "../hazards/registry";
+import { Breadcrumbs, DateSelect, HazardPicker, LocationSearch, type Crumb, type SearchHit } from "./ExploreControls";
 import { ExploreMap, type HoverInfo, type RiskRegionsCollection } from "./ExploreMap";
-import { countLevels, DistrictPanel, IndiaPanel, StatePanel, type CoverageRow, type RiskRegion, type RiskStatus } from "./ExplorePanels";
+import { ComingSoonPanel, countLevels, DistrictPanel, IndiaPanel, StatePanel, type CoverageRow, type RiskRegion, type RiskStatus } from "./ExplorePanels";
 import { useExploreSelection } from "./exploreState";
 import { INDIA_BBOX, normalizeName, useDistrictsGeo, useGeoIndex, useStatesGeo, type BBox } from "./geo";
-import { DEFAULT_HAZARD } from "./hazards";
 
-function Legend() {
+function Legend({ hazard }: { hazard: HazardMeta }) {
+  if (hazard.status !== "active") {
+    return (
+      <div className="pointer-events-none absolute bottom-3 left-3 flex max-w-[calc(100%-1.5rem)] items-center gap-2.5 rounded-lg border border-lp-line bg-lp-surface/95 px-3 py-2.5 text-[12.5px] shadow-sm">
+        <HazardTile hazard={hazard.id} size="sm" />
+        <span className="text-lp-ink-2">
+          <span className="font-semibold text-lp-ink">{hazard.name}: coming soon.</span> Boundaries only, no risk data.
+        </span>
+      </div>
+    );
+  }
   return (
     <div className="pointer-events-none absolute bottom-3 left-3 rounded-lg border border-lp-line bg-lp-surface/95 px-3 py-2.5 text-[12.5px] shadow-sm">
-      <p className="mb-1.5 font-semibold text-lp-ink">Flood risk</p>
+      <p className="mb-1.5 font-semibold text-lp-ink">{hazard.name} risk</p>
       <ul className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-1">
         {[...RISK_LEVELS].map((l) => (
           <li key={l} className="flex items-center gap-2 text-lp-ink-2">
@@ -52,14 +64,18 @@ export default function ExplorePage() {
   const [refocus, setRefocus] = useState(0);
   const [mapReady, setMapReady] = useState(false);
 
+  const hazard = getHazard(sel.hazard ?? DEFAULT_HAZARD);
+  const hazardActive = hazard.status === "active";
+
   const runs = useRuns();
   const statesGeo = useStatesGeo();
   const index = useGeoIndex();
   const risk = useRiskMap(sel.run, sel.date);
 
   // The run/date the server actually resolved (defaults to the latest live run and its first day).
-  const run = risk.data?.run ?? null;
-  const date = risk.data?.valid_for ?? undefined;
+  const riskForHazard = hazardActive && !!risk.data && (!risk.data.run || risk.data.run.hazard === hazard.id);
+  const run = riskForHazard ? (risk.data?.run ?? null) : null;
+  const date = riskForHazard ? (risk.data?.valid_for ?? undefined) : undefined;
   const riskStatus: RiskStatus = risk.isError ? "error" : risk.data ? "ready" : "loading";
 
   const stateBySlug = useMemo(() => new Map(index.data?.states.map((s) => [s.slug, s])), [index.data]);
@@ -67,7 +83,7 @@ export default function ExplorePage() {
 
   /** Model regions from the risk API, tagged with the state/district slugs used in URLs. */
   const riskRegions = useMemo<RiskRegion[]>(() => {
-    if (!risk.data || !index.data || risk.isError) return [];
+    if (!riskForHazard || !risk.data || !index.data || risk.isError) return [];
     return risk.data.features.flatMap((f) => {
       const stateSlug = stateSlugByName.get(normalizeName(f.properties.state));
       if (!stateSlug) return [];
@@ -83,10 +99,10 @@ export default function ExplorePage() {
         },
       ];
     });
-  }, [risk.data, risk.isError, index.data, stateSlugByName]);
+  }, [riskForHazard, risk.data, risk.isError, index.data, stateSlugByName]);
 
   const riskCollection = useMemo<RiskRegionsCollection | undefined>(() => {
-    if (!risk.data || risk.isError) return undefined;
+    if (!riskForHazard || !risk.data || risk.isError) return undefined;
     const byId = new Map(riskRegions.map((r) => [r.id, r]));
     return {
       type: "FeatureCollection",
@@ -95,7 +111,7 @@ export default function ExplorePage() {
         return r ? [{ type: "Feature" as const, id: r.id, geometry: f.geometry, properties: r }] : [];
       }),
     };
-  }, [risk.data, risk.isError, riskRegions]);
+  }, [riskForHazard, risk.data, risk.isError, riskRegions]);
 
   const statesWithData = useMemo(() => [...new Set(riskRegions.map((r) => r.state_slug))].sort(), [riskRegions]);
 
@@ -104,7 +120,7 @@ export default function ExplorePage() {
   const stateRegions = useMemo(() => riskRegions.filter((r) => r.state_slug === selectedState?.slug), [riskRegions, selectedState]);
   const stateDistricts = useMemo(() => index.data?.districts.filter((d) => d.state === selectedState?.slug) ?? [], [index.data, selectedState]);
   // Static district boundaries are only needed for states the risk API doesn't cover.
-  const districtsGeo = useDistrictsGeo(selectedState?.slug, !!selectedState && riskStatus !== "loading" && !stateHasData);
+  const districtsGeo = useDistrictsGeo(selectedState?.slug, !!selectedState && (!hazardActive || riskStatus !== "loading") && !stateHasData);
 
   const selectedDistrict = selectedState && sel.district ? stateDistricts.find((d) => d.slug === sel.district) : undefined;
   const selectedRegion = selectedDistrict ? stateRegions.find((r) => r.district_slug === selectedDistrict.slug) : undefined;
@@ -124,10 +140,13 @@ export default function ExplorePage() {
   );
 
   // Navigation keeps the chosen run/date and resets deeper levels.
-  const keep = { run: sel.run, date: sel.date };
+  const keep = { hazard: sel.hazard, run: sel.run, date: sel.date };
   const goIndia = () => setSel(keep);
   const goState = (slug: string) => setSel({ ...keep, state: slug });
   const goDistrict = (state: string, district: string) => setSel({ ...keep, state, district });
+
+  // Run/date belong to a hazard's forecasts, so switching hazard keeps the place but resets them.
+  const setHazard = (h: HazardMeta["id"]) => setSel({ hazard: h, state: sel.state, district: sel.district });
 
   const onPick = (stateSlug: string, districtSlug: string | undefined) => {
     if (stateSlug !== selectedState?.slug) goState(stateSlug);
@@ -136,17 +155,23 @@ export default function ExplorePage() {
 
   const describe = (stateSlug: string, districtSlug: string | undefined): HoverInfo => {
     const state = stateBySlug.get(stateSlug);
+    if (!hazardActive) {
+      const d = districtSlug && stateSlug === selectedState?.slug ? stateDistricts.find((x) => x.slug === districtSlug) : undefined;
+      return { title: d ? `${d.name}, ${state?.name ?? ""}` : (state?.name ?? stateSlug), detail: `${hazard.name}: coming soon` };
+    }
     const region = districtSlug ? riskRegions.find((r) => r.state_slug === stateSlug && r.district_slug === districtSlug) : undefined;
     if (region) {
       const level = region.risk_level ? `${RISK_LEVEL_META[region.risk_level as RiskLevel].label} (${Math.round((region.risk_score ?? 0) * 100)}%)` : "No prediction for this date";
-      return { title: `${region.name}, ${state?.name ?? ""}`, detail: `Flood risk: ${level}` };
+      return { title: `${region.name}, ${state?.name ?? ""}`, detail: `${hazard.name} risk: ${level}` };
     }
     if (districtSlug && stateSlug === selectedState?.slug) {
       const d = stateDistricts.find((x) => x.slug === districtSlug);
-      return { title: d?.name ?? districtSlug, detail: "No flood data yet" };
+      return { title: d?.name ?? districtSlug, detail: `No ${hazard.name.toLowerCase()} data yet` };
     }
-    const hasData = statesWithData.includes(stateSlug);
-    return { title: state?.name ?? stateSlug, detail: hasData ? "Flood forecasts available" : riskStatus === "loading" ? "Loading risk data…" : "No flood data yet" };
+    const availability = hazardAvailability(hazard.id, statesWithData.includes(stateSlug));
+    const detail =
+      availability === "data" ? `${hazard.name} forecasts available` : riskStatus === "loading" ? "Loading risk data…" : `No ${hazard.name.toLowerCase()} data yet`;
+    return { title: state?.name ?? stateSlug, detail };
   };
 
   const onSearch = (hit: SearchHit) => (hit.district ? goDistrict(hit.state, hit.district) : goState(hit.state));
@@ -167,12 +192,19 @@ export default function ExplorePage() {
         <p className="mt-2 text-[15px] leading-relaxed text-lp-ink-2 sm:mt-3 sm:text-[17px]">Explore climate and disaster risk across states and districts.</p>
       </header>
 
-      <div className="mt-5 flex items-end gap-3 border-y border-lp-line py-3 sm:mt-8 sm:justify-between sm:gap-4 sm:py-4">
-        <HazardSelect value={DEFAULT_HAZARD} />
-        <DateSelect runs={runs.data} loading={runs.isLoading} runId={run?.id} date={date} onChange={(r, d) => setSel({ state: sel.state, district: sel.district, run: r, date: d })} />
+      <div className="mt-5 flex flex-col gap-4 border-y border-lp-line py-4 sm:mt-8 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
+        <HazardPicker value={hazard.id} onChange={setHazard} />
+        <DateSelect
+          notApplicable={!hazardActive}
+          runs={runs.data?.filter((r) => r.hazard === hazard.id)}
+          loading={runs.isLoading}
+          runId={run?.id}
+          date={date}
+          onChange={(r, d) => setSel({ hazard: sel.hazard, state: sel.state, district: sel.district, run: r, date: d })}
+        />
       </div>
 
-      {run?.mode === "replay" && (
+      {hazardActive && run?.mode === "replay" && (
         <p className="mt-4 rounded-lg border border-lp-line bg-lp-sand/60 px-4 py-2.5 text-[14px] text-lp-ink" role="note">
           Viewing a replay of past data ({formatDay(run.reference_date, { day: "numeric", month: "long", year: "numeric" })}). This is not a current forecast.
         </p>
@@ -190,6 +222,7 @@ export default function ExplorePage() {
             riskRegions={riskCollection}
             districts={!stateHasData ? districtsGeo.data : undefined}
             statesWithData={statesWithData}
+            mode={hazardActive ? "risk" : "inactive"}
             selectedState={selectedState?.slug}
             selectedDistrict={selectedDistrict?.slug}
             focus={focus}
@@ -198,11 +231,11 @@ export default function ExplorePage() {
             onReady={() => setMapReady(true)}
             describe={describe}
           />
-          <Legend />
+          <Legend hazard={hazard} />
           {geoLoading && <MapStatus>Loading map…</MapStatus>}
-          {!geoLoading && !geoError && riskStatus === "loading" && <MapStatus>Loading risk data…</MapStatus>}
-          {!geoLoading && riskStatus === "error" && <MapStatus tone="warning">Risk data unavailable · showing boundaries only</MapStatus>}
-          {!geoLoading && riskStatus === "ready" && districtsGeo.isFetching && <MapStatus>Loading districts…</MapStatus>}
+          {!geoLoading && !geoError && hazardActive && riskStatus === "loading" && <MapStatus>Loading risk data…</MapStatus>}
+          {!geoLoading && hazardActive && riskStatus === "error" && <MapStatus tone="warning">Risk data unavailable · showing boundaries only</MapStatus>}
+          {!geoLoading && (riskStatus === "ready" || !hazardActive) && districtsGeo.isFetching && <MapStatus>Loading districts…</MapStatus>}
           {geoError && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-lp-bg/90 p-6 text-center">
               <p className="text-[15px] font-medium text-lp-ink">Map data could not be loaded.</p>
@@ -226,10 +259,18 @@ export default function ExplorePage() {
               That location wasn't found. Showing {selectedState && !selectedDistrict && sel.district ? selectedState.name : "India"} instead.
             </p>
           )}
-          {selectedState && selectedDistrict ? (
-            <DistrictPanel state={selectedState} district={selectedDistrict} region={selectedRegion} run={run} date={date} onSelectDate={(d) => setSel({ ...sel, run: run?.id, date: d })} />
+          {!hazardActive ? (
+            <ComingSoonPanel
+              hazard={hazard}
+              place={selectedDistrict ? `${selectedDistrict.name}, ${selectedState?.name}` : selectedState?.name}
+              activeName={getHazard(DEFAULT_HAZARD).name}
+              onExploreActive={() => setHazard(DEFAULT_HAZARD)}
+            />
+          ) : selectedState && selectedDistrict ? (
+            <DistrictPanel hazard={hazard} state={selectedState} district={selectedDistrict} region={selectedRegion} run={run} date={date} onSelectDate={(d) => setSel({ ...sel, run: run?.id, date: d })} />
           ) : selectedState ? (
             <StatePanel
+              hazard={hazard}
               state={selectedState}
               hasData={stateHasData}
               regions={stateRegions}
@@ -240,7 +281,7 @@ export default function ExplorePage() {
               onSelectDistrict={(d) => goDistrict(selectedState.slug, d)}
             />
           ) : (
-            <IndiaPanel coverage={coverage} status={riskStatus} date={date} onOpenState={goState} />
+            <IndiaPanel hazard={hazard} coverage={coverage} status={riskStatus} date={date} onOpenState={goState} />
           )}
         </aside>
       </div>

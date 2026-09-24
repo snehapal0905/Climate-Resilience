@@ -1,8 +1,8 @@
-/** Line icons for the hazards shown on the landing page (24×24, stroke = currentColor). */
+/** Line icons for every platform hazard (24×24, stroke = currentColor). Typed so a new hazard ID needs an icon. */
 import type { ReactNode } from "react";
-export type HazardKey = "flood" | "heatwave" | "cyclone" | "drought" | "landslide" | "wildfire" | "lightning" | "earthquake";
+import type { Hazard } from "@climate/shared";
 
-const PATHS: Record<HazardKey, ReactNode> = {
+const PATHS: Record<Hazard, ReactNode> = {
   flood: (
     <>
       <path d="M12 3.5c2.6 3.1 4.2 5.4 4.2 7.4a4.2 4.2 0 0 1-8.4 0c0-2 1.6-4.3 4.2-7.4Z" />
@@ -56,9 +56,15 @@ const PATHS: Record<HazardKey, ReactNode> = {
       <path d="M2 12h4l2-5 3 11 3-14 2.5 8H22" />
     </>
   ),
+  tsunami: (
+    <>
+      <path d="M2.5 17c1.4-6.6 5.2-10.5 10.5-11 3.2-.3 5.6 1.2 6.3 3.4-2.4-.8-4.7.3-5.3 2.5-.5 1.8.6 3.4 2.6 3.6" />
+      <path d="M2 21c1.7 1.1 3.3 1.1 5 0s3.3-1.1 5 0 3.3 1.1 5 0 3.3-1.1 5 0" />
+    </>
+  ),
 };
 
-export function HazardIcon({ hazard, className = "h-5 w-5" }: { hazard: HazardKey; className?: string }) {
+export function HazardIcon({ hazard, className = "h-5 w-5" }: { hazard: Hazard; className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {PATHS[hazard]}

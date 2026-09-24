@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
+import HazardsPage from "../hazards/HazardsPage";
 import LandingPage from "../landing/LandingPage";
 import { Link, usePathname } from "../lib/router";
 import { PlaceholderPage } from "./PlaceholderPage";
@@ -27,7 +28,7 @@ const PAGES: Record<string, Route> = {
   },
   [ROUTES.hazards]: {
     title: `Climate Hazards · ${SITE_NAME}`,
-    render: () => <PlaceholderPage title="Climate Hazards" description="Explore climate and disaster risks across India." />,
+    render: () => <HazardsPage />,
   },
   [ROUTES.prepare]: {
     title: `Prepare · ${SITE_NAME}`,

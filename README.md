@@ -26,6 +26,16 @@ React web app ──REST──►  Node.js API (Express + TypeScript)
 
 The API sends `POST /predict` with one feature row per (district, day) and gets back a risk score, a level, and the top contributing factors. The full contract is in [`packages/shared/src/ml.ts`](packages/shared/src/ml.ts), mirrored in [`services/ml/app/schemas.py`](services/ml/app/schemas.py). To plug in the real model, see [`services/ml/README.md`](services/ml/README.md); nothing else needs to change.
 
+### Hazards
+
+The platform knows about nine hazards, but only hazards with a model produce predictions:
+
+- `packages/shared/src/risk.ts` has `HAZARD_IDS` (every hazard the UI can show) and `MODELLED_HAZARDS` (currently `["flood"]`, the only IDs the ML contract, database and pipeline accept).
+- `apps/web/src/hazards/registry.ts` is the single frontend source for hazard names, descriptions, icons, identity colours and status. A hazard's status is **Active** when it is in `MODELLED_HAZARDS` and **Coming soon** otherwise.
+- The UI keeps three states separate: *prediction available*, *no data* (hazard modelled, nothing for this place/date) and *coming soon* (no model yet).
+
+Adding a hazard model later: build a hazard-specific pipeline (data → feature rows), add a model to the ML service that returns the common `Prediction` shape, then add the ID to `MODELLED_HAZARDS`. The API responses and the Explore map stay the same.
+
 ### Live vs replay runs
 
 - **Live** runs use today's date and the Open-Meteo forecast. They're scheduled every 3 hours.

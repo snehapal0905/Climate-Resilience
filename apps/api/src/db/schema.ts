@@ -13,7 +13,7 @@ import {
   timestamp,
   boolean,
 } from "drizzle-orm/pg-core";
-import type { Factor, FloodFeatures, Hazard, RiskLevel, RunMode } from "@climate/shared";
+import type { Factor, FloodFeatures, ModelledHazard, RiskLevel, RunMode } from "@climate/shared";
 
 /** PostGIS geometry column. Read it with ST_AsGeoJSON and write it with ST_GeomFromGeoJSON in raw SQL. */
 const multiPolygon = customType<{ data: string }>({
@@ -39,7 +39,7 @@ export const regions = pgTable(
 export const predictionRuns = pgTable("prediction_runs", {
   id: serial("id").primaryKey(),
   mode: text("mode").$type<RunMode>().notNull(),
-  hazard: text("hazard").$type<Hazard>().notNull(),
+  hazard: text("hazard").$type<ModelledHazard>().notNull(),
   referenceDate: date("reference_date").notNull(),
   label: text("label").notNull(),
   status: text("status").$type<"running" | "completed" | "failed">().notNull().default("running"),

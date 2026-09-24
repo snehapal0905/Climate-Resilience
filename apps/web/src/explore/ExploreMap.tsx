@@ -1,6 +1,7 @@
 /**
- * India map for Explore: states → districts, with flood risk from the risk API where a model
- * exists and a hatched neutral grey "no data" fill everywhere else.
+ * India map for Explore: states → districts. In "risk" mode, regions with predictions from the risk
+ * API are coloured by level and everything else gets a hatched neutral grey "no data" fill; in
+ * "inactive" mode (hazard without a model) only boundaries are drawn.
  */
 import type { FeatureCollection, Geometry } from "geojson";
 import { useEffect, useRef } from "react";
@@ -25,6 +26,11 @@ interface Props {
   /** Static district boundaries for the selected state, when it has no model regions */
   districts: DistrictsCollection | undefined;
   statesWithData: readonly string[];
+  /**
+   * "risk": the hazard has a model — regions show risk, or hatched grey "no data".
+   * "inactive": the hazard has no model yet — plain boundaries only, no risk and no "no data" fill.
+   */
+  mode: "risk" | "inactive";
   selectedState?: string;
   selectedDistrict?: string;
   focus: BBox | undefined;
@@ -107,6 +113,8 @@ export function ExploreMap(props: Props) {
       m.addSource("risk", { type: "geojson", data: EMPTY, promoteId: "id" });
       m.addSource("districts", { type: "geojson", data: EMPTY, promoteId: "slug" });
 
+      // Hazard without a model: a light neutral tint so the country reads, distinct from the grey "no data" hatch.
+      m.addLayer({ id: "states-plain", type: "fill", source: "states", layout: { visibility: "none" }, paint: { "fill-color": "#e6e1d2", "fill-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 0.75, 0.5] } }, beforeLabels);
       // No-data states: neutral grey + hatch (never a risk colour).
       m.addLayer({ id: "states-nodata", type: "fill", source: "states", paint: { "fill-color": NO_DATA_COLOR, "fill-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 0.32, 0.2] } }, beforeLabels);
       m.addLayer({ id: "states-nodata-hatch", type: "fill", source: "states", paint: { "fill-pattern": "no-data-hatch" } }, beforeLabels);
@@ -187,7 +195,7 @@ export function ExploreMap(props: Props) {
     };
   }, []);
 
-  const { states, riskRegions, districts, statesWithData, selectedState, selectedDistrict, focus, refocus } = props;
+  const { states, riskRegions, districts, statesWithData, mode, selectedState, selectedDistrict, focus, refocus } = props;
 
   useEffect(() => {
     if (states) whenLoaded(() => (mapRef.current!.getSource("states") as GeoJSONSource).setData(states));
@@ -215,6 +223,18 @@ export function ExploreMap(props: Props) {
   useEffect(() => {
     whenLoaded(() => {
       const m = mapRef.current!;
+      const visibility = mode === "risk" ? "visible" : "none";
+      for (const id of ["states-nodata", "states-nodata-hatch", "risk-fill", "risk-outline", "risk-dim", "district-selected-risk"]) {
+        m.setLayoutProperty(id, "visibility", visibility);
+      }
+      m.setLayoutProperty("states-plain", "visibility", mode === "risk" ? "none" : "visible");
+      m.setPaintProperty("states-outline", "line-width", ["interpolate", ["linear"], ["zoom"], 3, mode === "risk" ? 0.4 : 0.7, 7, 1.1]);
+    });
+  }, [mode]);
+
+  useEffect(() => {
+    whenLoaded(() => {
+      const m = mapRef.current!;
       m.setFilter("states-dim", selectedState ? ["!=", ["get", "slug"], selectedState] : ["==", ["get", "slug"], ""]);
       m.setFilter("state-selected", ["==", ["get", "slug"], selectedState ?? ""]);
       m.setFilter("district-selected-risk", ["all", ["==", ["get", "state_slug"], selectedState ?? ""], ["==", ["get", "district_slug"], selectedDistrict ?? ""]]);
@@ -234,5 +254,5 @@ export function ExploreMap(props: Props) {
     });
   }, [focusKey]);
 
-  return <div ref={container} className="h-full w-full" aria-label="Map of India showing flood risk by state and district" role="region" />;
+  return <div ref={container} className="h-full w-full" aria-label="Map of India by state and district" role="region" />;
 }

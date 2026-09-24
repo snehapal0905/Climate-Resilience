@@ -1,12 +1,12 @@
 /** Response shapes of the public REST API, shared by the backend and the web app. */
 import type { Geometry } from "geojson";
 import type { Factor } from "./ml.js";
-import type { Hazard, RiskLevel, RunMode } from "./risk.js";
+import type { ModelledHazard, RiskLevel, RunMode } from "./risk.js";
 
 export interface RunSummary {
   id: number;
   mode: RunMode;
-  hazard: Hazard;
+  hazard: ModelledHazard;
   /** The "today" of the run: live runs use the actual date, replays a historical one */
   reference_date: string;
   model_version: string;

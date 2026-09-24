@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { FEATURE_LABELS, NO_DATA_COLOR, RISK_LEVEL_META, RISK_LEVELS, type RiskLevel, type RunSummary } from "@climate/shared";
 import { RiskIcon } from "../components/RiskBadge";
+import { HazardStatusBadge, HazardTile } from "../hazards/HazardBits";
+import type { HazardMeta } from "../hazards/registry";
 import { useRegion } from "../lib/api";
 import { formatDay } from "../lib/format";
 import { Link } from "../lib/router";
@@ -127,7 +129,8 @@ export interface CoverageRow {
   counts: LevelCounts;
 }
 
-export function IndiaPanel({ coverage, status, date, onOpenState }: { coverage: CoverageRow[]; status: RiskStatus; date?: string; onOpenState: (slug: string) => void }) {
+export function IndiaPanel({ hazard, coverage, status, date, onOpenState }: { hazard: HazardMeta; coverage: CoverageRow[]; status: RiskStatus; date?: string; onOpenState: (slug: string) => void }) {
+  const noun = hazard.name.toLowerCase();
   return (
     <div className="space-y-6">
       <Heading eyebrow="Overview" title="India">
@@ -135,10 +138,10 @@ export function IndiaPanel({ coverage, status, date, onOpenState }: { coverage: 
       </Heading>
 
       <section>
-        <h3 className="mb-3 text-[13px] font-medium text-lp-ink-2">Flood forecasts available{date ? ` · ${longDay(date)}` : ""}</h3>
+        <h3 className="mb-3 text-[13px] font-medium text-lp-ink-2">{hazard.name} forecasts available{date ? ` · ${longDay(date)}` : ""}</h3>
         {status === "loading" && <Skeleton rows={1} />}
         {status === "error" && <RiskUnavailable />}
-        {status === "ready" && coverage.length === 0 && <Notice>No flood predictions are available for this date.</Notice>}
+        {status === "ready" && coverage.length === 0 && <Notice>No {noun} predictions are available for this date.</Notice>}
         {status === "ready" && coverage.length > 0 && (
           <ul className="space-y-2">
             {coverage.map((c) => {
@@ -168,7 +171,7 @@ export function IndiaPanel({ coverage, status, date, onOpenState }: { coverage: 
       </section>
 
       <Notice>
-        <span className="font-medium text-lp-ink">Other states:</span> no flood prediction data available yet. They're shown in hatched grey, which means
+        <span className="font-medium text-lp-ink">Other states:</span> no {noun} prediction data available yet. They're shown in hatched grey, which means
         <em> no data</em>, not low risk.
       </Notice>
     </div>
@@ -176,6 +179,7 @@ export function IndiaPanel({ coverage, status, date, onOpenState }: { coverage: 
 }
 
 export function StatePanel({
+  hazard,
   state,
   hasData,
   regions,
@@ -185,6 +189,7 @@ export function StatePanel({
   date,
   onSelectDistrict,
 }: {
+  hazard: HazardMeta;
   state: StateEntry;
   hasData: boolean;
   regions: RiskRegion[];
@@ -210,8 +215,8 @@ export function StatePanel({
           <RiskUnavailable />
         ) : (
           <Notice>
-            No flood prediction data available yet. District boundaries are shown ({totalDistricts} districts), but there is no current flood prediction for
-            this state.
+            No {hazard.name.toLowerCase()} prediction data available yet. District boundaries are shown ({totalDistricts} districts), but there is no current{" "}
+            {hazard.name.toLowerCase()} prediction for this state.
           </Notice>
         )}
         <p className="text-[14px] text-lp-ink-3">Select a district on the map to view it.</p>
@@ -224,7 +229,7 @@ export function StatePanel({
   return (
     <div className="space-y-6">
       <Heading eyebrow="State" title={state.name}>
-        Flood risk overview{date ? ` · ${longDay(date)}` : ""}
+        {hazard.name} risk overview{date ? ` · ${longDay(date)}` : ""}
       </Heading>
       <CountRows counts={counts} />
       <section>
@@ -247,12 +252,12 @@ export function StatePanel({
           ))}
         </ol>
       </section>
-      {run && (
+      {run && hazard.dashboardPath && (
         <Link
-          to={`/assam-flood-watch?run=${run.id}${date ? `&date=${date}` : ""}`}
+          to={`${hazard.dashboardPath}?run=${run.id}${date ? `&date=${date}` : ""}`}
           className="inline-flex items-center gap-1.5 text-[14px] font-medium text-lp-green underline-offset-4 hover:underline"
         >
-          Open the full flood dashboard →
+          Open the full {hazard.name.toLowerCase()} dashboard →
         </Link>
       )}
     </div>
@@ -287,6 +292,7 @@ function Outlook({ points, selected, onSelect }: { points: Array<{ valid_for: st
 }
 
 export function DistrictPanel({
+  hazard,
   state,
   district,
   region,
@@ -294,6 +300,7 @@ export function DistrictPanel({
   date,
   onSelectDate,
 }: {
+  hazard: HazardMeta;
   state: StateEntry;
   district: DistrictEntry | { name: string; slug: string };
   region: RiskRegion | undefined;
@@ -308,7 +315,7 @@ export function DistrictPanel({
       <div className="space-y-6">
         <Heading eyebrow={`District · ${state.name}`} title={district.name} />
         <LevelBadge level={null} />
-        <Notice>No flood prediction data available yet for this district.</Notice>
+        <Notice>No {hazard.name.toLowerCase()} prediction data available yet for this district.</Notice>
       </div>
     );
   }
@@ -318,7 +325,9 @@ export function DistrictPanel({
   const level = point?.risk_level ?? region.risk_level;
   const score = point?.risk_score ?? region.risk_score;
   const maxImpact = Math.max(0.0001, ...(point?.top_factors.map((f) => f.impact) ?? []));
-  const detailHref = `/assam-flood-watch?${new URLSearchParams({ ...(run ? { run: String(run.id) } : {}), ...(date ? { date } : {}), region: region.id })}`;
+  const detailHref = hazard.dashboardPath
+    ? `${hazard.dashboardPath}?${new URLSearchParams({ ...(run ? { run: String(run.id) } : {}), ...(date ? { date } : {}), region: region.id })}`
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -326,7 +335,7 @@ export function DistrictPanel({
 
       <div className="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-lp-line bg-lp-surface p-4">
         <div>
-          <p className="text-[12.5px] text-lp-ink-3">Flood risk{point ? ` · ${formatDay(point.valid_for)}` : ""}</p>
+          <p className="text-[12.5px] text-lp-ink-3">{hazard.name} risk{point ? ` · ${formatDay(point.valid_for)}` : ""}</p>
           <p className="mt-1 font-lp-display text-[40px] leading-none tabular-nums text-lp-ink">{score != null ? pct(score) : "—"}</p>
         </div>
         <LevelBadge level={level} />
@@ -358,6 +367,7 @@ export function DistrictPanel({
         </section>
       )}
 
+      {detailHref && (
       <Link
         to={detailHref}
         className="group flex w-full items-center justify-center gap-2 rounded-full bg-lp-green px-5 py-3 text-[15px] font-medium text-white transition-colors hover:bg-lp-green-deep sm:w-auto sm:inline-flex"
@@ -367,7 +377,41 @@ export function DistrictPanel({
           <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </Link>
+      )}
       {run && <p className="text-[12.5px] text-lp-ink-3">Model: {run.model_version}</p>}
+    </div>
+  );
+}
+
+/** Shown for hazards without a model: explains what is planned and never shows risk values. */
+export function ComingSoonPanel({ hazard, place, activeName, onExploreActive }: { hazard: HazardMeta; place?: string; activeName: string; onExploreActive: () => void }) {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-3">
+        <HazardTile hazard={hazard.id} size="lg" />
+        <HazardStatusBadge status={hazard.status} />
+      </div>
+      <Heading eyebrow={place ? `${hazard.name} · ${place}` : hazard.name} title={`${hazard.name} intelligence is coming soon.`}>
+        {hazard.comingSoon}
+      </Heading>
+      <dl className="divide-y divide-lp-line rounded-xl border border-lp-line bg-lp-bg text-[14px]">
+        <div className="flex items-center justify-between gap-4 px-4 py-3">
+          <dt className="text-lp-ink-3">Status</dt>
+          <dd className="font-medium text-lp-ink">Coming soon</dd>
+        </div>
+        <div className="flex items-center justify-between gap-4 px-4 py-3">
+          <dt className="text-lp-ink-3">Data</dt>
+          <dd className="font-medium text-lp-ink">{hazard.dataAvailability}</dd>
+        </div>
+      </dl>
+      <p className="text-[13.5px] leading-relaxed text-lp-ink-3">{hazard.description} There is no model for this hazard yet, so the map shows boundaries only.</p>
+      <button
+        type="button"
+        onClick={onExploreActive}
+        className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-lp-green underline-offset-4 hover:underline"
+      >
+        Explore {activeName} Risk →
+      </button>
     </div>
   );
 }

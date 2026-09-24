@@ -7,7 +7,7 @@
  * Keep services/ml/app/schemas.py in sync with this file.
  */
 import { z } from "zod";
-import { HazardSchema, RiskLevelSchema } from "./risk.js";
+import { ModelledHazardSchema, RiskLevelSchema } from "./risk.js";
 
 export const FloodFeaturesSchema = z.object({
   /** Precipitation on valid_for day (mm) */
@@ -32,7 +32,8 @@ export const PredictRowSchema = z.object({
 export type PredictRow = z.infer<typeof PredictRowSchema>;
 
 export const PredictRequestSchema = z.object({
-  hazard: HazardSchema,
+  /** Only hazards with a model; the ML service rejects anything else. */
+  hazard: ModelledHazardSchema,
   rows: z.array(PredictRowSchema).min(1),
 });
 export type PredictRequest = z.infer<typeof PredictRequestSchema>;

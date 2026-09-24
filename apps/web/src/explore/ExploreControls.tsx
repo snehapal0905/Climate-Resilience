@@ -1,8 +1,9 @@
 import { useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import type { RunSummary } from "@climate/shared";
+import type { Hazard, RunSummary } from "@climate/shared";
 import { formatDay } from "../lib/format";
 import { normalizeName, type GeoIndex } from "./geo";
-import { HAZARD_LAYERS, type HazardLayerId } from "./hazards";
+import { HazardStatusBadge, HazardTile } from "../hazards/HazardBits";
+import { HAZARD_REGISTRY } from "../hazards/registry";
 
 const selectClass =
   "w-full appearance-none rounded-lg border border-lp-line-strong bg-lp-surface py-2.5 pl-3 pr-9 text-[14.5px] text-lp-ink transition-colors hover:border-lp-ink-3 focus:border-lp-green focus:outline-none disabled:text-lp-ink-3";
@@ -26,19 +27,66 @@ function Field({ label, id, children }: { label: string; id: string; children: R
   );
 }
 
-export function HazardSelect({ value }: { value: HazardLayerId }) {
-  const id = useId();
+interface HazardPickerProps {
+  value: Hazard;
+  onChange: (hazard: Hazard) => void;
+}
+
+/**
+ * Hazard selector as a radio group of chips (wraps on desktop, scrolls sideways on phones).
+ * Coming-soon hazards stay selectable so people can see what's planned; they never show data.
+ */
+export function HazardPicker({ value, onChange }: HazardPickerProps) {
+  const labelId = useId();
+  const refs = useRef<Array<HTMLButtonElement | null>>([]);
+  const index = HAZARD_REGISTRY.findIndex((h) => h.id === value);
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const next = (index + step + HAZARD_REGISTRY.length) % HAZARD_REGISTRY.length;
+    onChange(HAZARD_REGISTRY[next]!.id);
+    refs.current[next]?.focus();
+  };
+
   return (
-    <Field label="Hazard" id={id}>
-      <select id={id} className={`${selectClass} sm:w-56`} value={value} onChange={() => {}}>
-        {HAZARD_LAYERS.map((h) => (
-          <option key={h.id} value={h.id} disabled={!h.available}>
-            {h.available ? h.label : `${h.label} — Coming soon`}
-          </option>
-        ))}
-      </select>
-      <Chevron />
-    </Field>
+    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+      <span id={labelId} className="text-[12px] font-medium uppercase tracking-[0.12em] text-lp-ink-3">
+        Hazard
+      </span>
+      <div
+        role="radiogroup"
+        aria-labelledby={labelId}
+        onKeyDown={onKeyDown}
+        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
+      >
+        {HAZARD_REGISTRY.map((h, i) => {
+          const selected = h.id === value;
+          return (
+            <button
+              key={h.id}
+              ref={(el) => {
+                refs.current[i] = el;
+              }}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => onChange(h.id)}
+              title={h.status === "active" ? h.description : `${h.name}: coming soon`}
+              className={`flex shrink-0 items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-[14px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-green ${
+                selected ? "border-lp-green bg-lp-green-soft text-lp-ink" : "border-lp-line bg-lp-surface text-lp-ink-2 hover:border-lp-ink-3"
+              }`}
+            >
+              <HazardTile hazard={h.id} size="sm" />
+              <span className={selected ? "font-medium" : ""}>{h.name}</span>
+              <HazardStatusBadge status={h.status} compact />
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -48,6 +96,8 @@ function todayInIndia() {
 }
 
 interface DateSelectProps {
+  /** Set when the selected hazard has no model, so there are no forecast dates to choose. */
+  notApplicable?: boolean;
   runs: RunSummary[] | undefined;
   loading: boolean;
   runId?: number;
@@ -55,9 +105,19 @@ interface DateSelectProps {
   onChange: (runId: number, date: string) => void;
 }
 
-export function DateSelect({ runs, loading, runId, date, onChange }: DateSelectProps) {
+export function DateSelect({ notApplicable = false, runs, loading, runId, date, onChange }: DateSelectProps) {
   const id = useId();
   const today = todayInIndia();
+  if (notApplicable) {
+    return (
+      <Field label="Date" id={id}>
+        <select id={id} className={`${selectClass} sm:w-64`} disabled value="">
+          <option value="">Not available for this hazard</option>
+        </select>
+        <Chevron />
+      </Field>
+    );
+  }
   const unavailable = !loading && (!runs || runs.length === 0);
   return (
     <Field label="Date" id={id}>
