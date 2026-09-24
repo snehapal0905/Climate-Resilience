@@ -8,6 +8,7 @@ import { ROUTES, SiteLayout } from "./SiteLayout";
 // Loaded on demand so other pages don't download the map and chart libraries.
 const AssamFloodWatch = lazy(() => import("../App"));
 const ExplorePage = lazy(() => import("../explore/ExplorePage"));
+const AmISafePage = lazy(() => import("../safety/AmISafePage"));
 
 const SITE_NAME = "ClimateResilience";
 
@@ -23,6 +24,14 @@ const PAGES: Record<string, Route> = {
     render: () => (
       <Suspense fallback={<div className="mx-auto min-h-[70vh] max-w-7xl px-4 pt-14 text-[15px] text-lp-ink-3 sm:px-6 lg:px-8">Loading map…</div>}>
         <ExplorePage />
+      </Suspense>
+    ),
+  },
+  [ROUTES.amISafe]: {
+    title: `Am I Safe? · ${SITE_NAME}`,
+    render: () => (
+      <Suspense fallback={<div className="mx-auto min-h-[60vh] max-w-7xl px-4 pt-16 sm:px-6 lg:px-8" />}>
+        <AmISafePage />
       </Suspense>
     ),
   },

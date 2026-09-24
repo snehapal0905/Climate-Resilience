@@ -13,6 +13,7 @@ export const ROUTES = {
   prepare: "/prepare",
   news: "/news",
   about: "/about",
+  amISafe: "/am-i-safe",
 } as const;
 
 const NAV: ReadonlyArray<{ label: string; to: string }> = [
@@ -44,7 +45,7 @@ function Brand() {
         <span className="block text-[17px] font-semibold tracking-tight text-lp-ink">
           Climate<span className="text-lp-green">Resilience</span>
         </span>
-        <span className="block text-[11px] text-lp-ink-3">India's Climate Risk &amp; Action Platform</span>
+        <span className="block whitespace-nowrap text-[11px] text-lp-ink-3">India's Climate Risk &amp; Action Platform</span>
       </span>
     </Link>
   );
@@ -65,6 +66,15 @@ export function PrimaryButton({ to, children, className = "", inverted = false }
         <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </Link>
+  );
+}
+
+function PinIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M8 14.5s-4.5-4-4.5-7.4a4.5 4.5 0 0 1 9 0c0 3.4-4.5 7.4-4.5 7.4Z" stroke="currentColor" strokeWidth="1.3" />
+      <circle cx="8" cy="7" r="1.6" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
   );
 }
 
@@ -102,7 +112,7 @@ function Header() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Brand />
 
-        <nav className="hidden h-full items-stretch gap-7 lg:flex" aria-label="Main">
+        <nav className="hidden h-full items-stretch gap-5 lg:flex xl:gap-7" aria-label="Main">
           {NAV.map((item) => {
             const active = pathname === item.to;
             return (
@@ -110,7 +120,7 @@ function Header() {
                 key={item.to}
                 to={item.to}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex items-center text-[14px] transition-colors ${active ? "text-lp-ink" : "text-lp-ink-2 hover:text-lp-ink"}`}
+                className={`relative flex items-center whitespace-nowrap text-[14px] transition-colors ${active ? "text-lp-ink" : "text-lp-ink-2 hover:text-lp-ink"}`}
               >
                 {item.label}
                 <span
@@ -122,15 +132,25 @@ function Header() {
           })}
         </nav>
 
-        <div className="hidden items-center gap-5 lg:flex">
-          <Soon className={`${navLink} flex items-center gap-1.5`}>
+        <div className="hidden items-center gap-4 lg:flex xl:gap-5">
+          <Soon className={`${navLink} hidden items-center gap-1.5 xl:flex`}>
             <GlobeIcon />
             English
           </Soon>
-          <Soon className={navLink}>Login</Soon>
+          <Soon className={`${navLink} hidden xl:inline`}>Login</Soon>
+          <Link
+            to={ROUTES.amISafe}
+            aria-current={pathname === ROUTES.amISafe ? "page" : undefined}
+            className={`flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-[7px] text-[14px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-green ${
+              pathname === ROUTES.amISafe ? "border-lp-green bg-lp-green-soft text-lp-green" : "border-lp-line-strong text-lp-ink hover:border-lp-ink-3"
+            }`}
+          >
+            <PinIcon />
+            Am I Safe?
+          </Link>
           <Link
             to={ROUTES.explore}
-            className="rounded-full bg-lp-green px-4 py-2 text-[14px] font-medium text-white transition-colors hover:bg-lp-green-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-green"
+            className="whitespace-nowrap rounded-full bg-lp-green px-4 py-2 text-[14px] font-medium text-white transition-colors hover:bg-lp-green-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-green"
           >
             Explore India
           </Link>
@@ -176,6 +196,15 @@ function Header() {
               <Soon>Login</Soon>
             </div>
           </nav>
+          <Link
+            to={ROUTES.amISafe}
+            onClick={() => setOpen(false)}
+            aria-current={pathname === ROUTES.amISafe ? "page" : undefined}
+            className="mt-2 flex items-center justify-center gap-2 rounded-full border border-lp-line-strong bg-lp-surface px-4 py-3 text-[15px] font-medium text-lp-ink"
+          >
+            <PinIcon />
+            Am I Safe?
+          </Link>
           <Link
             to={ROUTES.explore}
             onClick={() => setOpen(false)}

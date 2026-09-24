@@ -264,7 +264,7 @@ export function StatePanel({
   );
 }
 
-function Outlook({ points, selected, onSelect }: { points: Array<{ valid_for: string; risk_level: RiskLevel; risk_score: number }>; selected?: string; onSelect: (d: string) => void }) {
+export function Outlook({ points, selected, onSelect }: { points: Array<{ valid_for: string; risk_level: RiskLevel; risk_score: number }>; selected?: string; onSelect: (d: string) => void }) {
   return (
     <div className="grid grid-cols-7 gap-1.5">
       {points.map((p) => {

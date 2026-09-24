@@ -8,13 +8,16 @@ import { useMemo, useState, type ReactNode } from "react";
 import { NO_DATA_COLOR, RISK_LEVEL_META, RISK_LEVELS, type RiskLevel } from "@climate/shared";
 import { useRiskMap, useRuns } from "../lib/api";
 import { formatDay } from "../lib/format";
+import { Link } from "../lib/router";
+import { ROUTES } from "../site/SiteLayout";
 import { HazardTile } from "../hazards/HazardBits";
 import { DEFAULT_HAZARD, getHazard, hazardAvailability, type HazardMeta } from "../hazards/registry";
 import { Breadcrumbs, DateSelect, HazardPicker, LocationSearch, type Crumb, type SearchHit } from "./ExploreControls";
-import { ExploreMap, type HoverInfo, type RiskRegionsCollection } from "./ExploreMap";
-import { ComingSoonPanel, countLevels, DistrictPanel, IndiaPanel, StatePanel, type CoverageRow, type RiskRegion, type RiskStatus } from "./ExplorePanels";
+import { ExploreMap, type HoverInfo } from "./ExploreMap";
+import { ComingSoonPanel, countLevels, DistrictPanel, IndiaPanel, StatePanel, type CoverageRow, type RiskStatus } from "./ExplorePanels";
 import { useExploreSelection } from "./exploreState";
-import { INDIA_BBOX, normalizeName, useDistrictsGeo, useGeoIndex, useStatesGeo, type BBox } from "./geo";
+import { useRiskRegions } from "./riskRegions";
+import { INDIA_BBOX, useDistrictsGeo, useGeoIndex, useStatesGeo, type BBox } from "./geo";
 
 function Legend({ hazard }: { hazard: HazardMeta }) {
   if (hazard.status !== "active") {
@@ -79,41 +82,11 @@ export default function ExplorePage() {
   const riskStatus: RiskStatus = risk.isError ? "error" : risk.data ? "ready" : "loading";
 
   const stateBySlug = useMemo(() => new Map(index.data?.states.map((s) => [s.slug, s])), [index.data]);
-  const stateSlugByName = useMemo(() => new Map(index.data?.states.map((s) => [normalizeName(s.name), s.slug])), [index.data]);
-
-  /** Model regions from the risk API, tagged with the state/district slugs used in URLs. */
-  const riskRegions = useMemo<RiskRegion[]>(() => {
-    if (!riskForHazard || !risk.data || !index.data || risk.isError) return [];
-    return risk.data.features.flatMap((f) => {
-      const stateSlug = stateSlugByName.get(normalizeName(f.properties.state));
-      if (!stateSlug) return [];
-      const match = index.data.districts.find((d) => d.state === stateSlug && normalizeName(d.name) === normalizeName(f.properties.name));
-      return [
-        {
-          id: f.properties.id,
-          name: f.properties.name,
-          state_slug: stateSlug,
-          district_slug: match?.slug ?? normalizeName(f.properties.name).replace(/ /g, "-"),
-          risk_level: f.properties.risk_level,
-          risk_score: f.properties.risk_score,
-        },
-      ];
-    });
-  }, [riskForHazard, risk.data, risk.isError, index.data, stateSlugByName]);
-
-  const riskCollection = useMemo<RiskRegionsCollection | undefined>(() => {
-    if (!riskForHazard || !risk.data || risk.isError) return undefined;
-    const byId = new Map(riskRegions.map((r) => [r.id, r]));
-    return {
-      type: "FeatureCollection",
-      features: risk.data.features.flatMap((f) => {
-        const r = byId.get(f.properties.id);
-        return r ? [{ type: "Feature" as const, id: r.id, geometry: f.geometry, properties: r }] : [];
-      }),
-    };
-  }, [riskForHazard, risk.data, risk.isError, riskRegions]);
-
-  const statesWithData = useMemo(() => [...new Set(riskRegions.map((r) => r.state_slug))].sort(), [riskRegions]);
+  /** Model regions from the risk API for the selected hazard, tagged with URL slugs. */
+  const { regions: riskRegions, collection: riskCollection, statesWithData } = useRiskRegions(
+    riskForHazard && !risk.isError ? risk.data : undefined,
+    index.data,
+  );
 
   const selectedState = sel.state ? stateBySlug.get(sel.state) : undefined;
   const stateHasData = !!selectedState && statesWithData.includes(selectedState.slug);
@@ -212,7 +185,17 @@ export default function ExplorePage() {
 
       <div className="mt-4 flex flex-col-reverse gap-3 sm:mt-5 sm:flex-row sm:items-center sm:justify-between">
         <Breadcrumbs items={crumbs} />
-        <LocationSearch index={index.data} onSelect={onSearch} />
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          <LocationSearch index={index.data} onSelect={onSearch} />
+          <Link
+            to={ROUTES.amISafe}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-lp-line-strong bg-lp-surface px-3.5 py-2.5 text-[14.5px] font-medium text-lp-ink transition-colors hover:border-lp-ink-3"
+          >
+            <span aria-hidden="true">📍</span>
+            <span className="hidden sm:inline">Am I Safe?</span>
+            <span className="sm:hidden">Near me</span>
+          </Link>
+        </div>
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px]">

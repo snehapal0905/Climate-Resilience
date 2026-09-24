@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Link } from "../lib/router";
 import { PrimaryButton, ROUTES } from "../site/SiteLayout";
 import type { Hazard } from "@climate/shared";
@@ -47,7 +47,6 @@ function LiveCard({ className }: { className: string }) {
 }
 
 function Hero() {
-  const [locationNote, setLocationNote] = useState(false);
   return (
     <section className="relative overflow-hidden">
       <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-12 pt-12 sm:px-6 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-4 lg:px-8 lg:pb-20 lg:pt-20">
@@ -64,17 +63,13 @@ function Hero() {
             <PrimaryButton to={ROUTES.explore} className="w-full sm:w-auto">
               Explore India's Risk
             </PrimaryButton>
-            <button
-              type="button"
-              onClick={() => setLocationNote(true)}
+            <Link
+              to={ROUTES.amISafe}
               className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-lp-line-strong bg-lp-surface px-6 py-3 text-[15px] font-medium text-lp-ink transition duration-200 hover:border-lp-ink-3 sm:w-auto"
             >
               <span aria-hidden="true">📍</span> Check My Location
-            </button>
+            </Link>
           </div>
-          <p className={`mt-3 min-h-5 text-[13px] text-lp-ink-3 transition-opacity ${locationNote ? "opacity-100" : "opacity-0"}`} role="status">
-            {locationNote ? "Location check is coming soon. For Assam, use “Am I safe?” in Assam Flood Watch." : ""}
-          </p>
         </div>
 
         <div className="relative mx-auto aspect-[1080/1151] w-full max-w-[520px] lg:max-w-none">

@@ -44,15 +44,18 @@ const forever = { staleTime: Infinity, gcTime: Infinity, retry: 2 } as const;
 
 export const useStatesGeo = () => useQuery({ queryKey: ["geo", "states"], queryFn: () => getJson<StatesCollection>("/geo/india-states.geojson"), ...forever });
 
-export const useGeoIndex = () => useQuery({ queryKey: ["geo", "index"], queryFn: () => getJson<GeoIndex>("/geo/india-index.json"), ...forever });
+/** Query definitions, shared by the hooks below and by imperative callers (e.g. location lookup) so they hit one cache. */
+export const geoIndexQuery = { queryKey: ["geo", "index"], queryFn: () => getJson<GeoIndex>("/geo/india-index.json"), ...forever };
+export const districtsQuery = (stateSlug: string) => ({
+  queryKey: ["geo", "districts", stateSlug],
+  queryFn: () => getJson<DistrictsCollection>(`/geo/districts/${stateSlug}.geojson`),
+  ...forever,
+});
+
+export const useGeoIndex = () => useQuery(geoIndexQuery);
 
 export const useDistrictsGeo = (stateSlug: string | undefined, enabled: boolean) =>
-  useQuery({
-    queryKey: ["geo", "districts", stateSlug],
-    queryFn: () => getJson<DistrictsCollection>(`/geo/districts/${stateSlug}.geojson`),
-    enabled: !!stateSlug && enabled,
-    ...forever,
-  });
+  useQuery({ ...districtsQuery(stateSlug ?? ""), enabled: !!stateSlug && enabled });
 
 /** Case- and accent-insensitive form used for matching names and search. */
 export function normalizeName(s: string): string {

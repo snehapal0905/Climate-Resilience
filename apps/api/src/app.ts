@@ -5,6 +5,7 @@ import { pinoHttp } from "pino-http";
 import { sql } from "./db/client.js";
 import { env } from "./env.js";
 import { errorHandler } from "./lib/http.js";
+import { redactLocation } from "./lib/redact.js";
 import { logger } from "./logger.js";
 import { mlHealth } from "./pipeline/mlClient.js";
 import { regionsRouter } from "./routes/regions.js";
@@ -16,7 +17,14 @@ export function createApp() {
   app.use(helmet());
   app.use(cors({ origin: env.CORS_ORIGIN.split(",") }));
   app.use(express.json({ limit: "100kb" }));
-  app.use(pinoHttp({ logger, autoLogging: env.NODE_ENV !== "test" }));
+  app.use(
+    pinoHttp({
+      logger,
+      autoLogging: env.NODE_ENV !== "test",
+      // Never write precise locations (location lookups) to the logs.
+      serializers: { req: redactLocation },
+    }),
+  );
 
   app.get("/api/health", async (_req, res) => {
     const [dbOk, ml] = await Promise.all([
