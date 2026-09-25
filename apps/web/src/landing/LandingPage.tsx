@@ -3,7 +3,7 @@ import { Link } from "../lib/router";
 import { PrimaryButton, ROUTES } from "../site/SiteLayout";
 import type { Hazard } from "@climate/shared";
 import { HazardIcon } from "../hazards/HazardIcon";
-import { exploreHazardHref, getHazard, HAZARD_REGISTRY } from "../hazards/registry";
+import { exploreHazardHref, getHazard, HAZARD_REGISTRY, prepareHazardHref } from "../hazards/registry";
 import { HeroIndiaVisual, IndiaPreviewMap } from "./IndiaVisuals";
 
 const ACTIONS = [
@@ -222,19 +222,35 @@ function Prepare() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <SectionHeading eyebrow="Prepare" title="Prepared for what comes next." />
-          <p className="text-[14px] text-lp-ink-3 md:pb-2">Preparedness guides are coming soon.</p>
+          <Link
+            to={ROUTES.prepare}
+            className="group inline-flex items-center gap-1.5 text-[15px] font-medium text-lp-green underline-offset-4 hover:underline md:pb-2"
+          >
+            View all preparedness guides
+            <svg className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
         </div>
         <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PREPARE.map((p) => (
-            <li
-              key={p.key}
-              className="group rounded-xl border border-lp-line bg-lp-surface p-6 transition duration-300 hover:-translate-y-0.5 hover:border-lp-green/30 hover:shadow-[0_16px_32px_-24px_rgb(22_32_27/0.35)]"
-            >
-              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-lp-green-soft text-lp-green">
-                <HazardIcon hazard={p.key} className="h-6 w-6" />
-              </span>
-              <h3 className="mt-6 text-[18px] font-semibold text-lp-ink">{getHazard(p.key).name}</h3>
-              <p className="mt-2 text-[14.5px] leading-relaxed text-lp-ink-2">{p.body}</p>
+            <li key={p.key}>
+              <Link
+                to={prepareHazardHref(p.key)}
+                className="group flex h-full flex-col rounded-xl border border-lp-line bg-lp-surface p-6 transition duration-300 hover:-translate-y-0.5 hover:border-lp-green/30 hover:shadow-[0_16px_32px_-24px_rgb(22_32_27/0.35)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-green"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-lp-green-soft text-lp-green">
+                  <HazardIcon hazard={p.key} className="h-6 w-6" />
+                </span>
+                <h3 className="mt-6 text-[18px] font-semibold text-lp-ink">{getHazard(p.key).name}</h3>
+                <p className="mt-2 flex-1 text-[14.5px] leading-relaxed text-lp-ink-2">{p.body}</p>
+                <span className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-medium text-lp-green">
+                  Learn how to prepare
+                  <svg className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              </Link>
             </li>
           ))}
         </ul>

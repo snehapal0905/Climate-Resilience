@@ -25,6 +25,9 @@ const NAV: ReadonlyArray<{ label: string; to: string }> = [
 ];
 const MOBILE_NAV = [...NAV, { label: "About", to: ROUTES.about }];
 
+/** A nav item is current on its own path and on sub-pages (e.g. Prepare on /prepare/flood). */
+const isCurrent = (pathname: string, to: string) => pathname === to || (to !== ROUTES.home && pathname.startsWith(`${to}/`));
+
 /** Placeholder for navigation that isn't built yet: visibly a link, but inert. */
 export function Soon({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
@@ -114,7 +117,7 @@ function Header() {
 
         <nav className="hidden h-full items-stretch gap-5 lg:flex xl:gap-7" aria-label="Main">
           {NAV.map((item) => {
-            const active = pathname === item.to;
+            const active = isCurrent(pathname, item.to);
             return (
               <Link
                 key={item.to}
@@ -174,7 +177,7 @@ function Header() {
         <div id="lp-mobile-nav" className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-lp-line bg-lp-bg px-4 pb-6 pt-2 sm:px-6 lg:hidden">
           <nav className="flex flex-col" aria-label="Main">
             {MOBILE_NAV.map((item) => {
-              const active = pathname === item.to;
+              const active = isCurrent(pathname, item.to);
               return (
                 <Link
                   key={item.to}

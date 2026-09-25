@@ -1,5 +1,6 @@
-import { lazy, Suspense, useEffect, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, type ReactNode } from "react";
 import HazardsPage from "../hazards/HazardsPage";
+import { getHazard, parseHazard } from "../hazards/registry";
 import LandingPage from "../landing/LandingPage";
 import { Link, usePathname } from "../lib/router";
 import { PlaceholderPage } from "./PlaceholderPage";
@@ -9,6 +10,10 @@ import { ROUTES, SiteLayout } from "./SiteLayout";
 const AssamFloodWatch = lazy(() => import("../App"));
 const ExplorePage = lazy(() => import("../explore/ExplorePage"));
 const AmISafePage = lazy(() => import("../safety/AmISafePage"));
+const PreparePage = lazy(() => import("../prepare/PreparePage"));
+const HazardGuidePage = lazy(() => import("../prepare/HazardGuidePage"));
+
+const pageFallback = <div className="mx-auto min-h-[60vh] max-w-7xl px-4 pt-16 sm:px-6 lg:px-8" />;
 
 const SITE_NAME = "ClimateResilience";
 
@@ -41,7 +46,11 @@ const PAGES: Record<string, Route> = {
   },
   [ROUTES.prepare]: {
     title: `Prepare · ${SITE_NAME}`,
-    render: () => <PlaceholderPage title="Prepare" description="Practical guidance for before, during and after disasters." />,
+    render: () => (
+      <Suspense fallback={pageFallback}>
+        <PreparePage />
+      </Suspense>
+    ),
   },
   [ROUTES.news]: {
     title: `News & Insights · ${SITE_NAME}`,
@@ -64,10 +73,25 @@ const NOT_FOUND: Route = {
   ),
 };
 
+/** /prepare/:hazard for any hazard in the registry; unknown hazard IDs fall through to 404. */
+function prepareGuideRoute(pathname: string): Route | undefined {
+  const match = /^\/prepare\/([^/]+)$/.exec(pathname);
+  const hazard = parseHazard(match?.[1]);
+  if (!hazard) return undefined;
+  return {
+    title: `${getHazard(hazard).name} Preparedness · ${SITE_NAME}`,
+    render: () => (
+      <Suspense fallback={pageFallback}>
+        <HazardGuidePage key={hazard} hazard={hazard} />
+      </Suspense>
+    ),
+  };
+}
+
 export function AppRoutes() {
   const pathname = usePathname();
   const isDashboard = pathname === ROUTES.assam;
-  const page = PAGES[pathname] ?? NOT_FOUND;
+  const page = useMemo(() => PAGES[pathname] ?? prepareGuideRoute(pathname) ?? NOT_FOUND, [pathname]);
 
   // The site pages use the light landing theme on <html>/<body>; the dashboard keeps its own theme.
   useEffect(() => {

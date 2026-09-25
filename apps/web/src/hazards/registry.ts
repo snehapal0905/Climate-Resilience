@@ -116,6 +116,7 @@ export function parseHazard(value: string | null | undefined): Hazard | undefine
 }
 
 export const exploreHazardHref = (id: Hazard) => `/explore?hazard=${id}`;
+export const prepareHazardHref = (id: Hazard) => `/prepare/${id}`;
 
 /**
  * The three distinct states a hazard can be in for a place. They are never collapsed:
