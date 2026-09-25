@@ -49,8 +49,8 @@ function LiveCard({ className }: { className: string }) {
 function Hero() {
   return (
     <section className="relative overflow-hidden">
-      <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-12 pt-12 sm:px-6 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-4 lg:px-8 lg:pb-20 lg:pt-20">
-        <div className="lp-rise relative z-10">
+      <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-12 pt-12 sm:px-6 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-4 lg:px-8 lg:pb-20 lg:pt-12">
+        <div className="lp-rise relative z-10 lg:self-start lg:pt-12">
           <h1 className="font-lp-display text-[40px] leading-[1.05] tracking-[-0.02em] text-lp-ink sm:text-[56px] lg:text-[68px]">
             Climate risk is changing.
             <br />
