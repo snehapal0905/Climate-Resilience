@@ -70,6 +70,13 @@ function Hero() {
               <span aria-hidden="true">📍</span> Check My Location
             </Link>
           </div>
+          <p className="mt-6 text-[14.5px] text-lp-ink-2">
+            In an emergency?{" "}
+            <Link to={ROUTES.emergency} className="inline-flex items-center gap-1.5 font-medium text-lp-alert underline-offset-4 hover:underline">
+              <span className="h-2 w-2 rounded-full bg-lp-alert" aria-hidden="true" />
+              Open the Emergency Center
+            </Link>
+          </p>
         </div>
 
         <div className="relative mx-auto aspect-[1080/1151] w-full max-w-[520px] lg:max-w-none">

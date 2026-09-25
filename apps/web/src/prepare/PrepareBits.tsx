@@ -1,5 +1,7 @@
 /** Presentational pieces shared by /prepare and the hazard guide pages. */
 import { useId, useState, type ReactNode } from "react";
+import { Link } from "../lib/router";
+import { ROUTES } from "../site/SiteLayout";
 import { EMERGENCY_KIT, PREPAREDNESS_DISCLAIMER, type OfficialSource } from "./content";
 
 export type Stage = "before" | "during" | "after";
@@ -135,9 +137,9 @@ export function WarningIcon({ className = "h-5 w-5" }: { className?: string }) {
   );
 }
 
-export function DoNotList({ items }: { items: readonly string[] }) {
+export function DoNotList({ items, singleColumn = false }: { items: readonly string[]; singleColumn?: boolean }) {
   return (
-    <ul className="grid gap-2.5 sm:grid-cols-2">
+    <ul className={`grid gap-2.5 ${singleColumn ? "" : "sm:grid-cols-2"}`}>
       {items.map((text) => (
         <li key={text} className="flex items-start gap-3 rounded-lg border px-4 py-3" style={{ borderColor: DONT.line, background: DONT.soft }}>
           <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full" style={{ background: DONT.ink }} aria-hidden="true">
@@ -219,7 +221,12 @@ export function Disclaimer() {
         <path d="M8 7.2v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         <circle cx="8" cy="5" r=".8" fill="currentColor" />
       </svg>
-      <span>{PREPAREDNESS_DISCLAIMER}</span>
+      <span>
+        {PREPAREDNESS_DISCLAIMER}{" "}
+        <Link to={ROUTES.emergency} className="font-medium text-lp-alert underline underline-offset-2 hover:no-underline">
+          In an emergency now? Go to the Emergency Center
+        </Link>
+      </span>
     </p>
   );
 }

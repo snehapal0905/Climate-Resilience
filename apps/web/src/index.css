@@ -108,6 +108,9 @@ body {
   --lp-green-deep: #143d2c;
   --lp-green-soft: #e3ece5;
   --lp-sage: #a9c4b3;
+  /* Emergency actions only (call buttons, Emergency nav). White text on it is ~6.9:1. */
+  --lp-alert: #a3261f;
+  --lp-alert-soft: #f8ebe8;
   color-scheme: light;
 }
 
@@ -124,6 +127,8 @@ body {
   --color-lp-green-deep: var(--lp-green-deep);
   --color-lp-green-soft: var(--lp-green-soft);
   --color-lp-sage: var(--lp-sage);
+  --color-lp-alert: var(--lp-alert);
+  --color-lp-alert-soft: var(--lp-alert-soft);
   --font-lp-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
   --font-lp-display: "Newsreader", ui-serif, Georgia, serif;
 }

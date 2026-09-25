@@ -12,6 +12,7 @@ const ExplorePage = lazy(() => import("../explore/ExplorePage"));
 const AmISafePage = lazy(() => import("../safety/AmISafePage"));
 const PreparePage = lazy(() => import("../prepare/PreparePage"));
 const HazardGuidePage = lazy(() => import("../prepare/HazardGuidePage"));
+const EmergencyPage = lazy(() => import("../emergency/EmergencyPage"));
 
 const pageFallback = <div className="mx-auto min-h-[60vh] max-w-7xl px-4 pt-16 sm:px-6 lg:px-8" />;
 
@@ -49,6 +50,14 @@ const PAGES: Record<string, Route> = {
     render: () => (
       <Suspense fallback={pageFallback}>
         <PreparePage />
+      </Suspense>
+    ),
+  },
+  [ROUTES.emergency]: {
+    title: `Emergency Center · ${SITE_NAME}`,
+    render: () => (
+      <Suspense fallback={pageFallback}>
+        <EmergencyPage />
       </Suspense>
     ),
   },

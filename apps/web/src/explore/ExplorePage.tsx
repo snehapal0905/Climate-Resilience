@@ -195,6 +195,14 @@ export default function ExplorePage() {
             <span className="hidden sm:inline">Am I Safe?</span>
             <span className="sm:hidden">Near me</span>
           </Link>
+          <Link
+            to={ROUTES.emergency}
+            aria-label="Emergency Center"
+            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-lp-alert/40 bg-lp-surface px-3.5 py-2.5 text-[14.5px] font-medium text-lp-alert transition-colors hover:border-lp-alert hover:bg-lp-alert-soft"
+          >
+            <span className="h-2 w-2 rounded-full bg-lp-alert" aria-hidden="true" />
+            <span className="hidden sm:inline">Emergency</span>
+          </Link>
         </div>
       </div>
 

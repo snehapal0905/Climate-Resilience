@@ -14,6 +14,7 @@ export const ROUTES = {
   news: "/news",
   about: "/about",
   amISafe: "/am-i-safe",
+  emergency: "/emergency",
 } as const;
 
 const NAV: ReadonlyArray<{ label: string; to: string }> = [
@@ -37,18 +38,19 @@ export function Soon({ children, className = "" }: { children: ReactNode; classN
   );
 }
 
-function Brand() {
+/** `compact` (header) drops the tagline on narrow phones, and the wordmark below 360px, to keep room for Emergency. */
+function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <Link to={ROUTES.home} className="group flex items-center gap-2.5" aria-label="ClimateResilience home">
       <svg className="h-8 w-8 shrink-0 text-lp-green" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="1.6" />
         <path d="M4.5 12.5c3.8 2 7.6 2 11.5 0s7.7-2 11.5 0M3.5 18c4.1 2 8.3 2 12.5 0s8.4-2 12.5 0M7 23.5c3 1.4 6 1.4 9 0s6-1.4 9 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
       </svg>
-      <span className="leading-tight">
+      <span className={`leading-tight ${compact ? "hidden min-[360px]:block" : ""}`}>
         <span className="block text-[17px] font-semibold tracking-tight text-lp-ink">
           Climate<span className="text-lp-green">Resilience</span>
         </span>
-        <span className="block whitespace-nowrap text-[11px] text-lp-ink-3">India's Climate Risk &amp; Action Platform</span>
+        <span className={`${compact ? "hidden min-[420px]:block" : "block"} whitespace-nowrap text-[11px] text-lp-ink-3`}>India's Climate Risk &amp; Action Platform</span>
       </span>
     </Link>
   );
@@ -68,6 +70,26 @@ export function PrimaryButton({ to, children, className = "", inverted = false }
       <svg className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 16 16" fill="none" aria-hidden="true">
         <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
+    </Link>
+  );
+}
+
+/** Emergency entry: visually distinct (alert dot and border) but in the same pill style as the other header actions. */
+function EmergencyLink({ compact = false }: { compact?: boolean }) {
+  const pathname = usePathname();
+  const current = pathname === ROUTES.emergency;
+  return (
+    <Link
+      to={ROUTES.emergency}
+      aria-current={current ? "page" : undefined}
+      className={`flex items-center gap-1.5 whitespace-nowrap rounded-full border font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-alert ${
+        compact
+          ? "relative px-2.5 py-1.5 text-[13px] before:absolute before:inset-x-0 before:-inset-y-[5px] before:content-['']"
+          : "px-3.5 py-[7px] text-[14px]"
+      } ${current ? "border-lp-alert bg-lp-alert-soft text-lp-alert" : "border-lp-alert/40 text-lp-alert hover:border-lp-alert hover:bg-lp-alert-soft"}`}
+    >
+      <span className="h-2 w-2 rounded-full bg-lp-alert" aria-hidden="true" />
+      Emergency
     </Link>
   );
 }
@@ -113,9 +135,9 @@ function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-lp-line/70 bg-lp-bg/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Brand />
+        <Brand compact />
 
-        <nav className="hidden h-full items-stretch gap-5 lg:flex xl:gap-7" aria-label="Main">
+        <nav className="hidden h-full items-stretch gap-4 lg:flex xl:gap-7" aria-label="Main">
           {NAV.map((item) => {
             const active = isCurrent(pathname, item.to);
             return (
@@ -141,6 +163,7 @@ function Header() {
             English
           </Soon>
           <Soon className={`${navLink} hidden xl:inline`}>Login</Soon>
+          <EmergencyLink />
           <Link
             to={ROUTES.amISafe}
             aria-current={pathname === ROUTES.amISafe ? "page" : undefined}
@@ -159,18 +182,21 @@ function Header() {
           </Link>
         </div>
 
-        <button
-          type="button"
-          className="-mr-2 rounded-md p-2 text-lp-ink lg:hidden"
-          aria-expanded={open}
-          aria-controls="lp-mobile-nav"
-          aria-label={open ? "Close menu" : "Open menu"}
-          onClick={() => setOpen((o) => !o)}
-        >
-          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
-            {open ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-          </svg>
-        </button>
+        <div className="flex items-center gap-2 lg:hidden">
+          <EmergencyLink compact />
+          <button
+            type="button"
+            className="-mr-2 rounded-md p-2 text-lp-ink"
+            aria-expanded={open}
+            aria-controls="lp-mobile-nav"
+            aria-label={open ? "Close menu" : "Open menu"}
+            onClick={() => setOpen((o) => !o)}
+          >
+            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+              {open ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -241,11 +267,14 @@ function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_2fr] lg:px-8">
         <div>
           <Brand />
-          <Soon className="mt-6 inline-flex items-center gap-2 rounded-full border border-lp-line px-3 py-1.5 text-[13px] font-medium text-lp-ink">
-            <span className="h-2 w-2 rounded-full bg-[#d03b3b]" aria-hidden="true" />
-            Emergency
-          </Soon>
-          <p className="mt-4 text-[13px] text-lp-ink-3">In an emergency, call 112. Disaster helpline 1070.</p>
+          <Link
+            to={ROUTES.emergency}
+            className="mt-6 inline-flex items-center gap-2 rounded-full border border-lp-alert/40 px-3 py-1.5 text-[13px] font-medium text-lp-alert transition-colors hover:bg-lp-alert-soft"
+          >
+            <span className="h-2 w-2 rounded-full bg-lp-alert" aria-hidden="true" />
+            Emergency Center
+          </Link>
+          <p className="mt-4 text-[13px] text-lp-ink-3">In an emergency in India, call 112.</p>
         </div>
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
           {columns.map((c) => (
