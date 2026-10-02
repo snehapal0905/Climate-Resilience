@@ -8,6 +8,7 @@ import { errorHandler } from "./lib/http.js";
 import { redactLocation } from "./lib/redact.js";
 import { logger } from "./logger.js";
 import { mlHealth } from "./pipeline/mlClient.js";
+import { playgroundRouter } from "./routes/playground.js";
 import { regionsRouter } from "./routes/regions.js";
 import { riskRouter } from "./routes/risk.js";
 import { runsRouter } from "./routes/runs.js";
@@ -41,6 +42,7 @@ export function createApp() {
   app.use("/api/risk", riskRouter);
   app.use("/api/regions", regionsRouter);
   app.use("/api/runs", runsRouter);
+  app.use("/api/playground", playgroundRouter);
 
   app.use((_req, res) => {
     res.status(404).json({ error: "Not found" });

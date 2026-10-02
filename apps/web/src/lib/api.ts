@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { RegionDetail, RegionRiskCollection, RiskSummary, RunSummary } from "@climate/shared";
+import type { PlaygroundResponse, RegionDetail, RegionRiskCollection, RiskSummary, RunSummary } from "@climate/shared";
 
 const BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -45,3 +45,21 @@ export const useRegion = (id: string | undefined, run?: number) =>
 
 export const locateRegion = (lat: number, lon: number) =>
   get<{ id: string; name: string }>("/api/regions/locate", { lat, lon });
+
+export interface PlaygroundRequest {
+  lat: number;
+  lon: number;
+  date: string;
+  overrides?: Partial<Record<"rain_1d_mm" | "rain_3d_mm" | "rain_7d_mm" | "api_index", number>>;
+}
+
+export async function runPlayground(body: PlaygroundRequest): Promise<PlaygroundResponse> {
+  const res = await fetch(`${BASE}/api/playground`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(res.status, (json as { error?: string }).error ?? res.statusText);
+  return json as PlaygroundResponse;
+}

@@ -48,6 +48,15 @@ export const FEATURE_LABELS: Record<string, string> = {
   rain_7d_mm: "7-day rainfall",
   river_discharge_m3s: "River discharge",
   discharge_ratio: "River discharge vs 30-day normal",
+  rainfall_intensity: "Rainfall intensity",
+  api_index: "Soil wetness from recent rain",
+  rainfall_pct_of_seasonal_normal: "7-day rainfall vs monsoon normal",
+  month: "Time of year",
+  is_monsoon_season: "Monsoon season",
+  location: "Location",
+  temp_max_c: "Maximum temperature",
+  temp_min_c: "Minimum temperature",
+  temp_mean_c: "Average temperature",
 };
 
 export const RUN_MODES = ["live", "replay"] as const;

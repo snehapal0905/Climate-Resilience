@@ -4,7 +4,8 @@ import { PrimaryButton, ROUTES } from "../site/SiteLayout";
 import type { Hazard } from "@climate/shared";
 import { HazardIcon } from "../hazards/HazardIcon";
 import { exploreHazardHref, getHazard, HAZARD_REGISTRY, prepareHazardHref } from "../hazards/registry";
-import { HeroIndiaVisual, IndiaPreviewMap } from "./IndiaVisuals";
+import { InteractiveEarth } from "../components/ui/interactive-earth";
+import { IndiaPreviewMap } from "./IndiaVisuals";
 
 const ACTIONS = [
   { title: "Know your risk", body: "Understand the hazards affecting your region." },
@@ -30,7 +31,7 @@ const PILLARS = [
 function LiveCard({ className }: { className: string }) {
   return (
     <Link
-      to={ROUTES.assam}
+      to={ROUTES.explore}
       className={`lp-rise items-center gap-3 rounded-xl border border-lp-line bg-lp-surface/95 px-4 py-3 shadow-[0_8px_30px_-12px_rgb(22_32_27/0.25)] transition hover:-translate-y-0.5 ${className}`}
       style={{ animationDelay: "0.25s" }}
     >
@@ -39,8 +40,8 @@ function LiveCard({ className }: { className: string }) {
         <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-lp-green" />
       </span>
       <span className="text-left leading-tight">
-        <span className="block text-[13px] font-semibold text-lp-ink">Live now: Assam</span>
-        <span className="block text-[12px] text-lp-ink-3">District flood forecasts, 7 days ahead</span>
+        <span className="block text-[13px] font-semibold text-lp-ink">Live climate intelligence</span>
+        <span className="block text-[12px] text-lp-ink-3">India · 7-day risk outlook</span>
       </span>
     </Link>
   );
@@ -80,10 +81,10 @@ function Hero() {
         </div>
 
         <div className="relative mx-auto aspect-[1080/1151] w-full max-w-[520px] lg:max-w-none">
-          <HeroIndiaVisual />
-          <LiveCard className="absolute bottom-[14%] right-[2%] hidden sm:flex" />
+          <InteractiveEarth className="absolute inset-x-0 top-1/2 aspect-square -translate-y-1/2" />
+          <LiveCard className="absolute bottom-[8%] right-[2%] hidden sm:flex" />
         </div>
-        {/* On phones the card sits below the map so it doesn't cover it. */}
+        {/* On phones the card sits below the globe so it doesn't cover it. */}
         <LiveCard className="flex sm:hidden" />
       </div>
     </section>

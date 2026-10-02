@@ -1,6 +1,6 @@
 /** Response shapes of the public REST API, shared by the backend and the web app. */
 import type { Geometry } from "geojson";
-import type { Factor } from "./ml.js";
+import type { Factor, FloodFeatures } from "./ml.js";
 import type { ModelledHazard, RiskLevel, RunMode } from "./risk.js";
 
 export interface RunSummary {
@@ -62,6 +62,19 @@ export interface RegionDetail {
   run: RunSummary | null;
   risk_timeline: RiskPoint[];
   weather: DailyWeather[];
+}
+
+/** Response of POST /api/playground: one on-demand prediction for any point and day. */
+export interface PlaygroundResponse {
+  model_version: string;
+  date: string;
+  /** Whether the weather for `date` is observed or a forecast */
+  source: "observed" | "forecast";
+  /** Features computed from the real weather */
+  observed: FloodFeatures;
+  /** Features actually sent to the model (observed, with any "what if" overrides applied) */
+  features: FloodFeatures;
+  prediction: RiskPoint;
 }
 
 export interface RiskSummary {

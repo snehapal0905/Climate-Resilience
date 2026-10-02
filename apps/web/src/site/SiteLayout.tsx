@@ -15,6 +15,7 @@ export const ROUTES = {
   about: "/about",
   amISafe: "/am-i-safe",
   emergency: "/emergency",
+  playground: "/model-playground",
 } as const;
 
 const NAV: ReadonlyArray<{ label: string; to: string }> = [
@@ -23,6 +24,7 @@ const NAV: ReadonlyArray<{ label: string; to: string }> = [
   { label: "Hazards", to: ROUTES.hazards },
   { label: "Prepare", to: ROUTES.prepare },
   { label: "News & Insights", to: ROUTES.news },
+  { label: "AI Model", to: ROUTES.playground },
 ];
 const MOBILE_NAV = [...NAV, { label: "About", to: ROUTES.about }];
 

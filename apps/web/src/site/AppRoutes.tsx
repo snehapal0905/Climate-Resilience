@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, type ReactNode } from "react";
 import HazardsPage from "../hazards/HazardsPage";
 import { getHazard, parseHazard } from "../hazards/registry";
+import { getNewsItem } from "../news/feed";
 import LandingPage from "../landing/LandingPage";
 import { Link, usePathname } from "../lib/router";
 import { PlaceholderPage } from "./PlaceholderPage";
@@ -13,6 +14,9 @@ const AmISafePage = lazy(() => import("../safety/AmISafePage"));
 const PreparePage = lazy(() => import("../prepare/PreparePage"));
 const HazardGuidePage = lazy(() => import("../prepare/HazardGuidePage"));
 const EmergencyPage = lazy(() => import("../emergency/EmergencyPage"));
+const NewsPage = lazy(() => import("../news/NewsPage"));
+const NewsArticlePage = lazy(() => import("../news/NewsArticlePage"));
+const ModelPlaygroundPage = lazy(() => import("../playground/ModelPlaygroundPage"));
 
 const pageFallback = <div className="mx-auto min-h-[60vh] max-w-7xl px-4 pt-16 sm:px-6 lg:px-8" />;
 
@@ -63,7 +67,19 @@ const PAGES: Record<string, Route> = {
   },
   [ROUTES.news]: {
     title: `News & Insights · ${SITE_NAME}`,
-    render: () => <PlaceholderPage title="Climate & Disaster Intelligence" description="Latest climate and disaster developments will appear here." />,
+    render: () => (
+      <Suspense fallback={pageFallback}>
+        <NewsPage />
+      </Suspense>
+    ),
+  },
+  [ROUTES.playground]: {
+    title: `Model Playground · ${SITE_NAME}`,
+    render: () => (
+      <Suspense fallback={pageFallback}>
+        <ModelPlaygroundPage />
+      </Suspense>
+    ),
   },
   [ROUTES.about]: {
     title: `About · ${SITE_NAME}`,
@@ -97,10 +113,25 @@ function prepareGuideRoute(pathname: string): Route | undefined {
   };
 }
 
+/** /news/:id for stories in the news feed; unknown IDs fall through to 404. */
+function newsArticleRoute(pathname: string): Route | undefined {
+  const match = /^\/news\/([^/]+)$/.exec(pathname);
+  const item = match ? getNewsItem(decodeURIComponent(match[1])) : undefined;
+  if (!item) return undefined;
+  return {
+    title: `${item.title} · News & Insights · ${SITE_NAME}`,
+    render: () => (
+      <Suspense fallback={pageFallback}>
+        <NewsArticlePage key={item.id} id={item.id} />
+      </Suspense>
+    ),
+  };
+}
+
 export function AppRoutes() {
   const pathname = usePathname();
   const isDashboard = pathname === ROUTES.assam;
-  const page = useMemo(() => PAGES[pathname] ?? prepareGuideRoute(pathname) ?? NOT_FOUND, [pathname]);
+  const page = useMemo(() => PAGES[pathname] ?? prepareGuideRoute(pathname) ?? newsArticleRoute(pathname) ?? NOT_FOUND, [pathname]);
 
   // The site pages use the light landing theme on <html>/<body>; the dashboard keeps its own theme.
   useEffect(() => {
