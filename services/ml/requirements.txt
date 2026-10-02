@@ -1,3 +1,8 @@
 fastapi>=0.115
 uvicorn[standard]>=0.30
 pydantic>=2.8
+# Trained XGBoost model (app/xgb_model.py). xgboost must match the version the artifact was saved with.
+xgboost==2.1.4
+scikit-learn>=1.5
+joblib>=1.4
+numpy>=2.0

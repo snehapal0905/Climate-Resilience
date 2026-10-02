@@ -14,6 +14,14 @@ class FloodFeatures(BaseModel):
     rain_7d_mm: float = Field(ge=0)
     river_discharge_m3s: float = Field(ge=0)
     discharge_ratio: float = Field(ge=0)
+    # Extra inputs for the trained XGBoost model (xgb_model.py); optional so the mock still works.
+    rain_hours_1d: float | None = Field(default=None, ge=0)
+    api_index: float | None = Field(default=None, ge=0)
+    temp_max_c: float | None = None
+    temp_min_c: float | None = None
+    temp_mean_c: float | None = None
+    lat: float | None = None
+    lon: float | None = None
 
 
 class PredictRow(BaseModel):

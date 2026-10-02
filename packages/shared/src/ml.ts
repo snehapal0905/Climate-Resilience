@@ -20,6 +20,18 @@ export const FloodFeaturesSchema = z.object({
   river_discharge_m3s: z.number().nonnegative(),
   /** river_discharge_m3s divided by the mean discharge of the 30 days before the run date */
   discharge_ratio: z.number().nonnegative(),
+  // Extra inputs for the trained XGBoost model (services/ml/app/xgb_model.py). Optional so the
+  // rule-based mock and predictions stored before they existed stay valid.
+  /** Hours with precipitation on valid_for */
+  rain_hours_1d: z.number().nonnegative().optional(),
+  /** Antecedent Precipitation Index on valid_for: API_t = P_t + 0.9 · API_(t-1) (mm) */
+  api_index: z.number().nonnegative().optional(),
+  temp_max_c: z.number().optional(),
+  temp_min_c: z.number().optional(),
+  temp_mean_c: z.number().optional(),
+  /** Region reference point */
+  lat: z.number().optional(),
+  lon: z.number().optional(),
 });
 export type FloodFeatures = z.infer<typeof FloodFeaturesSchema>;
 

@@ -46,7 +46,7 @@ export async function runPipeline(opts: RunOptions): Promise<number> {
     log.info({ regions: regionRows.length, start, end }, "Fetching weather");
     const series = await fetchWeather(opts.mode, regionRows, start, end);
 
-    const predictRows = regionRows.flatMap((r, i) => buildFloodRows(r.id, series[i]!, referenceDate));
+    const predictRows = regionRows.flatMap((r, i) => buildFloodRows(r.id, series[i]!, referenceDate, r));
     log.info({ rows: predictRows.length }, "Requesting predictions");
     const response = await predict({ hazard: "flood", rows: predictRows });
     const featuresByKey = new Map(predictRows.map((r) => [`${r.region_id}|${r.valid_for}`, r.features]));

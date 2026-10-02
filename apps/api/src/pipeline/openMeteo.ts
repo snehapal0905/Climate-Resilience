@@ -15,7 +15,11 @@ export interface Point {
 
 export interface DayWeather {
   precipitation_mm: number | null;
+  /** Hours with precipitation (used by the XGBoost model's rainfall intensity) */
+  precipitation_hours: number | null;
   temperature_max_c: number | null;
+  temperature_min_c: number | null;
+  temperature_mean_c: number | null;
   river_discharge_m3s: number | null;
 }
 
@@ -28,6 +32,13 @@ const WEATHER_URL: Record<RunMode, string> = {
 };
 const FLOOD_URL = "https://flood-api.open-meteo.com/v1/flood";
 const CHUNK_SIZE = 25;
+const WEATHER_VARIABLES = [
+  "precipitation_sum",
+  "precipitation_hours",
+  "temperature_2m_max",
+  "temperature_2m_min",
+  "temperature_2m_mean",
+];
 
 interface DailyResponse {
   daily?: { time: string[]; [variable: string]: (number | null)[] | string[] };
@@ -88,7 +99,7 @@ export async function fetchWeather(
   end: string,
 ): Promise<WeatherSeries[]> {
   const [weather, flood] = await Promise.all([
-    fetchDaily(WEATHER_URL[mode], points, ["precipitation_sum", "temperature_2m_max"], start, end),
+    fetchDaily(WEATHER_URL[mode], points, WEATHER_VARIABLES, start, end),
     fetchDaily(FLOOD_URL, points, ["river_discharge"], start, end),
   ]);
 
@@ -99,7 +110,10 @@ export async function fetchWeather(
     for (const date of new Set([...w.keys(), ...f.keys()])) {
       series.set(date, {
         precipitation_mm: w.get(date)?.precipitation_sum ?? null,
+        precipitation_hours: w.get(date)?.precipitation_hours ?? null,
         temperature_max_c: w.get(date)?.temperature_2m_max ?? null,
+        temperature_min_c: w.get(date)?.temperature_2m_min ?? null,
+        temperature_mean_c: w.get(date)?.temperature_2m_mean ?? null,
         river_discharge_m3s: f.get(date)?.river_discharge ?? null,
       });
     }

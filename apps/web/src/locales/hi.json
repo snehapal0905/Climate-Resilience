@@ -57,7 +57,16 @@
     "rain_3d_mm": "3 दिन की वर्षा",
     "rain_7d_mm": "7 दिन की वर्षा",
     "river_discharge_m3s": "नदी प्रवाह",
-    "discharge_ratio": "30 दिन के सामान्य की तुलना में नदी प्रवाह"
+    "discharge_ratio": "30 दिन के सामान्य की तुलना में नदी प्रवाह",
+    "rainfall_intensity": "वर्षा की तीव्रता",
+    "api_index": "हाल की वर्षा से मिट्टी की नमी",
+    "rainfall_pct_of_seasonal_normal": "मानसून सामान्य की तुलना में 7 दिन की वर्षा",
+    "month": "वर्ष का समय",
+    "is_monsoon_season": "मानसून का मौसम",
+    "location": "स्थान",
+    "temp_max_c": "अधिकतम तापमान",
+    "temp_min_c": "न्यूनतम तापमान",
+    "temp_mean_c": "औसत तापमान"
   },
   "advice": {
     "low": [
