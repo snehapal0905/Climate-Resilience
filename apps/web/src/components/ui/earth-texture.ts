@@ -43,11 +43,25 @@ function landPath(ctx: CanvasRenderingContext2D) {
   }
 }
 
+function dotPattern(ctx: CanvasRenderingContext2D): CanvasPattern {
+  const tile = document.createElement("canvas");
+  tile.width = 14;
+  tile.height = 14;
+  const t = tile.getContext("2d")!;
+  t.fillStyle = EARTH_COLORS.landGrain;
+  // Two offset dots per tile give a staggered grid.
+  t.fillRect(2, 2, 2.2, 2.2);
+  t.fillRect(9, 9, 2.2, 2.2);
+  return ctx.createPattern(tile, "repeat")!;
+}
+
 export function paintEarthTexture(): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
-  const ctx = canvas.getContext("2d")!;
+  // CPU-backed canvas: drawing this on the GPU queued heavy work in the browser's shared GPU
+  // process and could freeze the whole browser on integrated graphics.
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
 
   // Ocean: slightly lighter towards the equator for a sense of depth.
   const ocean = ctx.createLinearGradient(0, 0, 0, H);
@@ -71,30 +85,23 @@ export function paintEarthTexture(): HTMLCanvasElement {
   }
   ctx.stroke();
 
-  // Land fill, then a dot grain clipped to it, then a fine coastline.
+  // Land fill, dot grain, India glow, then a fine coastline.
   landPath(ctx);
   ctx.fillStyle = EARTH_COLORS.land;
   ctx.fill("evenodd");
 
+  // Dot grain: one fill with a small repeating tile, so it costs a single draw call.
+  ctx.fillStyle = dotPattern(ctx);
+  ctx.fill("evenodd");
+
+  // Soft glow centred on India, kept to land (no outline: borders are deliberately not drawn).
   ctx.save();
   ctx.clip("evenodd");
-  // Soft glow centred on India (no outline: borders are deliberately not drawn).
   const glow = ctx.createRadialGradient(x(79), y(22), 0, x(79), y(22), 150);
   glow.addColorStop(0, EARTH_COLORS.indiaGlow);
   glow.addColorStop(1, "rgba(214, 232, 196, 0)");
   ctx.fillStyle = glow;
   ctx.fillRect(x(79) - 160, y(22) - 160, 320, 320);
-
-  ctx.fillStyle = EARTH_COLORS.landGrain;
-  const step = 7;
-  for (let py = step / 2; py < H; py += step) {
-    // Widen dot spacing towards the poles so the grain looks even on the sphere.
-    const stretch = 1 / Math.max(0.25, Math.cos(((90 - (py / H) * 180) * Math.PI) / 180));
-    const sx = step * stretch;
-    for (let px = (py / step) % 2 ? sx / 2 : 0; px < W; px += sx) {
-      ctx.fillRect(px, py, 2.2, 2.2);
-    }
-  }
   ctx.restore();
 
   landPath(ctx);
