@@ -16,7 +16,7 @@ const HazardGuidePage = lazy(() => import("../prepare/HazardGuidePage"));
 const EmergencyPage = lazy(() => import("../emergency/EmergencyPage"));
 const NewsPage = lazy(() => import("../news/NewsPage"));
 const NewsArticlePage = lazy(() => import("../news/NewsArticlePage"));
-const ModelPlaygroundPage = lazy(() => import("../playground/ModelPlaygroundPage"));
+const ModelTesterPage = lazy(() => import("../model-tester/ModelTesterPage"));
 
 const pageFallback = <div className="mx-auto min-h-[60vh] max-w-7xl px-4 pt-16 sm:px-6 lg:px-8" />;
 
@@ -73,11 +73,11 @@ const PAGES: Record<string, Route> = {
       </Suspense>
     ),
   },
-  [ROUTES.playground]: {
-    title: `Model Playground · ${SITE_NAME}`,
+  [ROUTES.modelTester]: {
+    title: `AI Model Tester · ${SITE_NAME}`,
     render: () => (
       <Suspense fallback={pageFallback}>
-        <ModelPlaygroundPage />
+        <ModelTesterPage />
       </Suspense>
     ),
   },

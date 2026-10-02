@@ -1,11 +1,11 @@
 /**
- * Model playground: run the flood model for any point in India on any day, outside the scheduled
+ * Model tester: run the flood model for any point in India on any day, outside the scheduled
  * pipeline. Fetches that point's weather, builds the same features the pipeline would, optionally
  * replaces some of them ("what if" values), and returns the model's prediction. Nothing is stored.
  */
 import { Router } from "express";
 import { z } from "zod";
-import type { PlaygroundResponse } from "@climate/shared";
+import type { ModelTesterResponse } from "@climate/shared";
 import { addDays, todayInIndia } from "../lib/dates.js";
 import { HttpError } from "../lib/http.js";
 import { BASELINE_DAYS, baselineDischarge, floodFeatures } from "../pipeline/features.js";
@@ -32,9 +32,9 @@ const BodySchema = z.object({
     .default({}),
 });
 
-export const playgroundRouter = Router();
+export const modelTesterRouter = Router();
 
-playgroundRouter.post("/", async (req, res) => {
+modelTesterRouter.post("/", async (req, res) => {
   const { lat, lon, date, overrides } = BodySchema.parse(req.body);
   const today = todayInIndia();
   if (date < "1985-01-01") throw new HttpError(400, "Pick a date from 1985 onwards");
@@ -47,10 +47,10 @@ playgroundRouter.post("/", async (req, res) => {
 
   const observed = floodFeatures(series, date, baselineDischarge(series, date), point);
   const features = { ...observed, ...overrides };
-  const response = await predict({ hazard: "flood", rows: [{ region_id: "playground", valid_for: date, features }] });
+  const response = await predict({ hazard: "flood", rows: [{ region_id: "model-tester", valid_for: date, features }] });
   const prediction = response.predictions[0]!;
 
-  const body: PlaygroundResponse = {
+  const body: ModelTesterResponse = {
     model_version: response.model_version,
     date,
     source: date > today ? "forecast" : "observed",

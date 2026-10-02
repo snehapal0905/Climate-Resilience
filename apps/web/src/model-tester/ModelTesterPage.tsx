@@ -1,13 +1,13 @@
 /**
- * /model-playground: try the flood model on any place in India and any day, then change the rainfall
- * inputs to see how the prediction responds. Runs on demand through POST /api/playground; nothing
+ * /ai-model: try the flood model on any place in India and any day, then change the rainfall
+ * inputs to see how the prediction responds. Runs on demand through POST /api/model-tester; nothing
  * is stored.
  */
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
-import { FEATURE_LABELS, RISK_LEVEL_META, type FloodFeatures, type PlaygroundResponse } from "@climate/shared";
+import { FEATURE_LABELS, RISK_LEVEL_META, type FloodFeatures, type ModelTesterResponse } from "@climate/shared";
 import { LevelBadge } from "../explore/ExplorePanels";
-import { runPlayground, type PlaygroundRequest } from "../lib/api";
+import { runModelTester, type ModelTesterRequest } from "../lib/api";
 import { formatDay, formatNumber } from "../lib/format";
 
 interface Place {
@@ -41,7 +41,7 @@ const EXAMPLES: Array<{ label: string; place: string; date: string }> = [
   { label: "Dry winter day", place: "Delhi", date: "2024-01-15" },
 ];
 
-type OverrideKey = keyof NonNullable<PlaygroundRequest["overrides"]>;
+type OverrideKey = keyof NonNullable<ModelTesterRequest["overrides"]>;
 const SLIDERS: Array<{ key: OverrideKey; max: number; unit: string }> = [
   { key: "rain_1d_mm", max: 300, unit: "mm" },
   { key: "rain_3d_mm", max: 600, unit: "mm" },
@@ -81,12 +81,12 @@ function useDebounced<T>(value: T, ms: number): T {
   return debounced;
 }
 
-export default function ModelPlaygroundPage() {
+export default function ModelTesterPage() {
   const [placeName, setPlaceName] = useState("Guwahati");
   const [custom, setCustom] = useState({ lat: "26.1445", lon: "91.7362" });
   const [date, setDate] = useState("2022-06-17");
-  const [submitted, setSubmitted] = useState<PlaygroundRequest | null>(null);
-  const [overrides, setOverrides] = useState<NonNullable<PlaygroundRequest["overrides"]>>({});
+  const [submitted, setSubmitted] = useState<ModelTesterRequest | null>(null);
+  const [overrides, setOverrides] = useState<NonNullable<ModelTesterRequest["overrides"]>>({});
   const debouncedOverrides = useDebounced(overrides, 350);
 
   const preset = PLACES.find((p) => p.name === placeName);
@@ -96,14 +96,14 @@ export default function ModelPlaygroundPage() {
 
   const request = submitted && { ...submitted, overrides: debouncedOverrides };
   const result = useQuery({
-    queryKey: ["playground", request],
-    queryFn: () => runPlayground(request!),
+    queryKey: ["model-tester", request],
+    queryFn: () => runModelTester(request!),
     enabled: !!request,
     placeholderData: keepPreviousData,
     retry: false,
   });
 
-  const run = (next: PlaygroundRequest) => {
+  const run = (next: ModelTesterRequest) => {
     setOverrides({});
     setSubmitted(next);
   };
@@ -111,7 +111,7 @@ export default function ModelPlaygroundPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-12 sm:px-6 lg:px-8">
       <header className="max-w-3xl">
-        <p className="mb-3 text-[12px] font-medium uppercase tracking-[0.14em] text-lp-green">Model playground</p>
+        <p className="mb-3 text-[12px] font-medium uppercase tracking-[0.14em] text-lp-green">AI Model Tester</p>
         <h1 className="font-lp-display text-[38px] leading-[1.06] tracking-[-0.02em] text-lp-ink sm:text-[52px]">Test the flood model anywhere in India.</h1>
         <p className="mt-4 text-[17px] leading-relaxed text-lp-ink-2">
           Pick a place and a day. We fetch that day's real weather, run the AI flood model and show what it predicts and why. Then change the rainfall to see
@@ -265,7 +265,7 @@ const INPUT_ROWS: Array<{ key: keyof FloodFeatures; unit: string; digits?: numbe
   { key: "temp_min_c", unit: "°C", digits: 1 },
 ];
 
-function Result({ data, placeLabel, updating }: { data: PlaygroundResponse; placeLabel: string; updating: boolean }) {
+function Result({ data, placeLabel, updating }: { data: ModelTesterResponse; placeLabel: string; updating: boolean }) {
   const p = data.prediction;
   const maxImpact = Math.max(0.0001, ...p.top_factors.map((f) => f.impact));
   const whatIf = INPUT_ROWS.some(({ key }) => data.features[key] !== data.observed[key]);
@@ -278,7 +278,7 @@ function Result({ data, placeLabel, updating }: { data: PlaygroundResponse; plac
             <p className="text-[15px] font-semibold text-lp-ink">Flood risk · {placeLabel}</p>
             <p className="text-[13px] text-lp-ink-3">
               {formatDay(data.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-              {whatIf ? " · with your “what if” rainfall" : data.source === "forecast" ? " · forecast weather" : " · real weather"}
+              {whatIf ? " · with your \u201cwhat if\u201d rainfall" : data.source === "forecast" ? " · forecast weather" : " · real weather"}
             </p>
           </div>
           <LevelBadge level={p.risk_level} />

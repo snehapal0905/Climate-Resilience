@@ -64,8 +64,8 @@ export interface RegionDetail {
   weather: DailyWeather[];
 }
 
-/** Response of POST /api/playground: one on-demand prediction for any point and day. */
-export interface PlaygroundResponse {
+/** Response of POST /api/model-tester: one on-demand prediction for any point and day. */
+export interface ModelTesterResponse {
   model_version: string;
   date: string;
   /** Whether the weather for `date` is observed or a forecast */

@@ -15,7 +15,7 @@ export const ROUTES = {
   about: "/about",
   amISafe: "/am-i-safe",
   emergency: "/emergency",
-  playground: "/model-playground",
+  modelTester: "/ai-model",
 } as const;
 
 const NAV: ReadonlyArray<{ label: string; to: string }> = [
@@ -24,7 +24,7 @@ const NAV: ReadonlyArray<{ label: string; to: string }> = [
   { label: "Hazards", to: ROUTES.hazards },
   { label: "Prepare", to: ROUTES.prepare },
   { label: "News & Insights", to: ROUTES.news },
-  { label: "AI Model", to: ROUTES.playground },
+  { label: "AI Model", to: ROUTES.modelTester },
 ];
 const MOBILE_NAV = [...NAV, { label: "About", to: ROUTES.about }];
 
@@ -105,15 +105,6 @@ function PinIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-function GlobeIcon() {
-  return (
-    <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="6.3" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M1.7 8h12.6M8 1.7c1.7 1.8 2.5 3.9 2.5 6.3S9.7 12.5 8 14.3M8 1.7C6.3 3.5 5.5 5.6 5.5 8s.8 4.5 2.5 6.3" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
-}
-
 function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -160,10 +151,6 @@ function Header() {
         </nav>
 
         <div className="hidden items-center gap-4 lg:flex xl:gap-5">
-          <Soon className={`${navLink} hidden items-center gap-1.5 xl:flex`}>
-            <GlobeIcon />
-            English
-          </Soon>
           <Soon className={`${navLink} hidden xl:inline`}>Login</Soon>
           <EmergencyLink />
           <Link
@@ -175,12 +162,6 @@ function Header() {
           >
             <PinIcon />
             Am I Safe?
-          </Link>
-          <Link
-            to={ROUTES.explore}
-            className="whitespace-nowrap rounded-full bg-lp-green px-4 py-2 text-[14px] font-medium text-white transition-colors hover:bg-lp-green-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-green"
-          >
-            Explore India
           </Link>
         </div>
 
@@ -220,10 +201,6 @@ function Header() {
               );
             })}
             <div className="flex gap-6 py-3 pl-[14px] text-[15px] text-lp-ink-3">
-              <Soon className="flex items-center gap-1.5">
-                <GlobeIcon />
-                English
-              </Soon>
               <Soon>Login</Soon>
             </div>
           </nav>
@@ -235,13 +212,6 @@ function Header() {
           >
             <PinIcon />
             Am I Safe?
-          </Link>
-          <Link
-            to={ROUTES.explore}
-            onClick={() => setOpen(false)}
-            className="mt-2 block rounded-full bg-lp-green px-4 py-3 text-center text-[15px] font-medium text-white"
-          >
-            Explore India
           </Link>
         </div>
       )}
